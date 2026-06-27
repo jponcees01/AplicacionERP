@@ -1,0 +1,413 @@
+/* ============================================================
+   VARIABLES
+============================================================ */
+
+:root {
+    --color-fondo: #f4f6f9;
+    --color-sidebar: #111827;
+    --color-sidebar-hover: #1f2937;
+    --color-primario: #2563eb;
+    --color-texto: #111827;
+    --color-texto-suave: #6b7280;
+    --color-borde: #e5e7eb;
+    --color-blanco: #ffffff;
+}
+
+
+/* ============================================================
+   BASE
+============================================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container-fluid {
+    padding: 0;
+}
+
+.row {
+    margin: 0;
+}
+
+
+/* ============================================================
+   SIDEBAR
+============================================================ */
+
+.sidebar {
+    min-height: 100vh;
+    background-color: var(--color-sidebar);
+    color: var(--color-blanco);
+    position: sticky;
+    top: 0;
+}
+
+.sidebar-contenido {
+    min-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-title {
+    font-weight: 700;
+    color: var(--color-blanco);
+}
+
+.menu-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #d1d5db;
+    text-decoration: none;
+    padding: 11px 14px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    transition: all 0.2s ease;
+}
+
+.menu-item i {
+    width: 20px;
+    font-size: 17px;
+}
+
+.menu-item:hover {
+    color: var(--color-blanco);
+    background-color: var(--color-sidebar-hover);
+}
+
+.menu-item.active {
+    color: var(--color-blanco);
+    background-color: var(--color-primario);
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   ENCABEZADO
+============================================================ */
+
+.page-header {
+    background-color: var(--color-blanco);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.page-header h4 {
+    color: var(--color-texto);
+}
+
+
+/* ============================================================
+   TARJETAS
+============================================================ */
+
+.card {
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+}
+
+.resumen-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resumen-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+}
+
+.resumen-icono {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+}
+
+.card-header {
+    border-radius: 16px 16px 0 0 !important;
+}
+
+
+/* ============================================================
+   FORMULARIOS
+============================================================ */
+
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+    min-height: 42px;
+    border-color: #d7dce3;
+    border-radius: 8px;
+}
+
+.input-group .form-control {
+    border-radius: 0 8px 8px 0;
+}
+
+.input-group-text {
+    border-radius: 8px 0 0 8px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+}
+
+
+/* ============================================================
+   TABLA KARDEX
+============================================================ */
+
+.kardex-table {
+    min-width: 1250px;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid #dbe2ea;
+    padding: 14px 12px;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 14px 12px;
+    font-size: 14px;
+    vertical-align: middle;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+
+/* ============================================================
+   TIPOS DE MOVIMIENTO
+============================================================ */
+
+.badge-movimiento {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-entrada {
+    color: #166534;
+    background-color: #dcfce7;
+}
+
+.badge-salida {
+    color: #991b1b;
+    background-color: #fee2e2;
+}
+
+.cantidad-entrada {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.cantidad-salida {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   STOCK
+============================================================ */
+
+.stock-anterior,
+.stock-resultante {
+    min-width: 48px;
+    display: inline-flex;
+    justify-content: center;
+    padding: 5px 9px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.stock-anterior {
+    color: #475569;
+    background-color: #f1f5f9;
+}
+
+.stock-resultante {
+    color: #1d4ed8;
+    background-color: #dbeafe;
+}
+
+
+/* ============================================================
+   REFERENCIA
+============================================================ */
+
+.referencia-kardex {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   MODAL
+============================================================ */
+
+.modal-content {
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.detalle-kardex-item {
+    height: 100%;
+    min-height: 80px;
+    padding: 15px;
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+    background-color: #f8fafc;
+}
+
+.detalle-kardex-item span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-texto-suave);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.detalle-kardex-item strong {
+    color: var(--color-texto);
+    font-size: 14px;
+}
+
+
+/* ============================================================
+   PAGINACIÓN
+============================================================ */
+
+.pagination .page-link {
+    color: #334155;
+    border-color: #dbe2ea;
+}
+
+.pagination .page-item.active .page-link {
+    color: var(--color-blanco);
+    background-color: var(--color-primario);
+    border-color: var(--color-primario);
+}
+
+.pagination .page-link:focus {
+    box-shadow: none;
+}
+
+
+/* ============================================================
+   BOTONES
+============================================================ */
+
+.btn {
+    border-radius: 8px;
+    min-height: 40px;
+}
+
+.btn-success {
+    background-color: #16a34a;
+    border-color: #16a34a;
+}
+
+.btn-success:hover {
+    background-color: #15803d;
+    border-color: #15803d;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 991px) {
+
+    .sidebar {
+        min-height: auto;
+        position: static;
+    }
+
+    .sidebar-contenido {
+        min-height: auto;
+    }
+
+    .usuario-sesion {
+        margin-top: 30px;
+    }
+
+    .page-header {
+        padding-top: 20px !important;
+        padding-bottom: 20px !important;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .resumen-card .card-body {
+        padding: 16px;
+    }
+
+    .resumen-icono {
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+    }
+
+    .card-body {
+        padding: 18px !important;
+    }
+
+    .table-responsive {
+        border-radius: 10px;
+    }
+
+}

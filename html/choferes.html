@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Gestión de choferes</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/choferes.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/sesion.css"
+    >
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- SIDEBAR -->
+        <aside class="col-lg-2 sidebar p-4">
+
+            <div class="sidebar-contenido">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2 mb-5">
+
+                        <i class="bi bi-box-seam fs-3"></i>
+
+                        <span class="sidebar-title fs-5">
+                            Mi Inventario
+                        </span>
+
+                    </div>
+
+                    <nav>
+
+                        <a href="dashboard.html" class="menu-item">
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+
+                        <a href="productos.html" class="menu-item solo-admin">
+                            <i class="bi bi-box"></i>
+                            Productos
+                        </a>
+
+                        <a href="inventario.html" class="menu-item">
+                            <i class="bi bi-boxes"></i>
+                            Inventario
+                        </a>
+
+                        <a
+                                href="kardex.html"
+                                class="menu-item"
+                            >
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                        <a href="solicitudStock.html" class="menu-item">
+                            <i class="bi bi-clipboard-check"></i>
+                            Solicitud de stock
+                        </a>
+
+                        <a href="envios.html" class="menu-item">
+                            <i class="bi bi-truck"></i>
+                            Envíos
+                        </a>
+
+                        <a href="devoluciones.html" class="menu-item">
+                            <i class="bi bi-arrow-return-left"></i>
+                            Devoluciones
+                        </a>
+
+                        <a href="ventas.html" class="menu-item solo-admin">
+                            <i class="bi bi-cart-check"></i>
+                            Ventas
+                        </a>
+
+                        <a href="usuarios.html" class="menu-item solo-admin">
+                            <i class="bi bi-people"></i>
+                            Usuarios
+                        </a>
+
+                        <a href="choferes.html" class="menu-item active solo-admin">
+                            <i class="bi bi-person-badge"></i>
+                            Choferes
+                        </a>
+
+                        <a href="vehiculos.html" class="menu-item solo-admin">
+                            <i class="bi bi-truck-front"></i>
+                            Vehículos
+                        </a>
+
+                        <a href="almacenes.html" class="menu-item solo-admin">
+                            <i class="bi bi-buildings"></i>
+                            Almacenes
+                        </a>
+
+                        <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                        <a href="chatbot.html" class="menu-item">
+
+                            <i class="bi bi-robot"></i>
+
+                            <span>
+                                Asistente IA
+                            </span>
+
+                        </a>
+
+                    </nav>
+
+                </div>
+
+                <!-- SESIÓN -->
+                <div class="usuario-sesion">
+
+                    <div class="usuario-info">
+
+                        <div
+                            class="usuario-avatar"
+                            id="usuarioAvatar"
+                        >
+                            U
+                        </div>
+
+                        <div class="usuario-datos">
+
+                            <strong id="nombreUsuarioSesion">
+                                Usuario
+                            </strong>
+
+                            <small id="rolUsuarioSesion">
+                                Sin rol
+                            </small>
+
+                            <span id="usernameSesion">
+                                @usuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-salir"
+                        onclick="cerrarSesion()"
+                    >
+                        <i class="bi bi-box-arrow-right"></i>
+                        Cerrar sesión
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- CONTENIDO -->
+        <main class="col-lg-10 px-0">
+
+            <header class="page-header px-4 py-3">
+
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-center gap-3"
+                >
+
+                    <div>
+
+                        <h4 class="fw-bold mb-1">
+                            Gestión de choferes
+                        </h4>
+
+                        <small class="text-muted">
+                            Registra choferes y administra sus datos y estado.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="abrirModalNuevoChofer()"
+                    >
+                        <i class="bi bi-person-plus me-2"></i>
+                        Nuevo chofer
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="p-4">
+
+                <!-- RESUMEN -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+
+                        <div class="card resumen-card">
+
+                            <div
+                                class="card-body d-flex align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="resumen-icono bg-primary-subtle text-primary"
+                                >
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Total choferes
+                                    </small>
+
+                                    <h4
+                                        id="totalChoferes"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="card resumen-card">
+
+                            <div
+                                class="card-body d-flex align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="resumen-icono bg-success-subtle text-success"
+                                >
+                                    <i class="bi bi-person-check"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Activos
+                                    </small>
+
+                                    <h4
+                                        id="totalActivos"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="card resumen-card">
+
+                            <div
+                                class="card-body d-flex align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="resumen-icono bg-secondary-subtle text-secondary"
+                                >
+                                    <i class="bi bi-person-x"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Inactivos
+                                    </small>
+
+                                    <h4
+                                        id="totalInactivos"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- FILTROS -->
+                <div class="card mb-4">
+
+                    <div class="card-body">
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-lg-7">
+
+                                <label
+                                    for="buscarChofer"
+                                    class="form-label"
+                                >
+                                    Buscar chofer
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        id="buscarChofer"
+                                        class="form-control"
+                                        placeholder="Buscar por nombre, DNI, licencia o teléfono..."
+                                        autocomplete="off"
+                                    >
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-lg-3">
+
+                                <label
+                                    for="filtroEstado"
+                                    class="form-label"
+                                >
+                                    Estado
+                                </label>
+
+                                <select
+                                    id="filtroEstado"
+                                    class="form-select"
+                                >
+                                    <option value="" selected>
+                                        Todos
+                                    </option>
+
+                                    <option value="true">
+                                        Activo
+                                    </option>
+
+                                    <option value="false">
+                                        Inactivo
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary w-100"
+                                    onclick="limpiarFiltrosChoferes()"
+                                >
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                    Limpiar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TABLA -->
+                <div class="card">
+
+                    <div
+                        class="card-header bg-white border-0 px-4 pt-4"
+                    >
+
+                        <h5 class="fw-bold mb-1">
+                            Choferes registrados
+                        </h5>
+
+                        <small class="text-muted">
+                            Consulta y administra los choferes registrados.
+                        </small>
+
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <div class="table-responsive">
+
+                            <table
+                                class="table table-hover align-middle"
+                            >
+
+                                <thead>
+
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Chofer</th>
+                                    <th>DNI</th>
+                                    <th>Licencia</th>
+                                    <th>Teléfono</th>
+                                    <th>Estado</th>
+
+                                    <th class="text-center">
+                                        Acciones
+                                    </th>
+                                </tr>
+
+                                </thead>
+
+                                <tbody id="tablaChoferes"></tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div
+                            id="sinChoferes"
+                            class="text-center py-5 d-none"
+                        >
+
+                            <i class="bi bi-person-badge fs-1 text-muted"></i>
+
+                            <h5 class="mt-3">
+                                No se encontraron choferes
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                Registra un chofer o modifica los filtros.
+                            </p>
+
+                        </div>
+
+                        <!-- INFORMACIÓN Y PAGINACIÓN -->
+                        <div
+                            class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4"
+                        >
+
+                            <div class="text-muted">
+
+                                Mostrando
+
+                                <strong id="registroInicioChoferes">
+                                    0
+                                </strong>
+
+                                -
+
+                                <strong id="registroFinChoferes">
+                                    0
+                                </strong>
+
+                                de
+
+                                <strong id="totalRegistrosChoferes">
+                                    0
+                                </strong>
+
+                                choferes
+
+                            </div>
+
+                            <div
+                                class="d-flex flex-wrap align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="d-flex align-items-center gap-2"
+                                >
+
+                                    <label
+                                        for="tamanioPaginaChoferes"
+                                        class="form-label mb-0 text-muted"
+                                    >
+                                        Mostrar:
+                                    </label>
+
+                                    <select
+                                        id="tamanioPaginaChoferes"
+                                        class="form-select form-select-sm"
+                                        style="width: 85px;"
+                                    >
+                                        <option value="5" selected>
+                                            5
+                                        </option>
+
+                                        <option value="10">
+                                            10
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <nav aria-label="Paginación de choferes">
+
+                                    <ul
+                                        class="pagination pagination-sm mb-0"
+                                        id="paginacionChoferes"
+                                    ></ul>
+
+                                </nav>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+<!-- MODAL CREAR O EDITAR -->
+<div
+    class="modal fade"
+    id="modalChofer"
+    tabindex="-1"
+    aria-labelledby="modalChoferLabel"
+    aria-hidden="true"
+>
+    <div
+        class="modal-dialog modal-lg modal-dialog-centered"
+    >
+
+        <div class="modal-content border-0 rounded-4">
+
+            <form
+                id="formChofer"
+                onsubmit="guardarChofer(event)"
+            >
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <h5
+                            class="modal-title fw-bold"
+                            id="modalChoferLabel"
+                        >
+                            <i class="bi bi-person-plus text-primary me-2"></i>
+                            Registrar chofer
+                        </h5>
+
+                        <small class="text-muted">
+                            Completa los datos requeridos.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"
+                    ></button>
+
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <input
+                        type="hidden"
+                        id="choferId"
+                    >
+
+                    <div class="row g-3">
+
+                        <div class="col-md-12">
+
+                            <label
+                                for="nombre"
+                                class="form-label required"
+                            >
+                                Nombre completo
+                            </label>
+
+                            <input
+                                type="text"
+                                id="nombre"
+                                class="form-control"
+                                placeholder="Ejemplo: Carlos Mendoza Silva"
+                                maxlength="150"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                for="dni"
+                                class="form-label required"
+                            >
+                                DNI
+                            </label>
+
+                            <input
+                                type="text"
+                                id="dni"
+                                class="form-control"
+                                placeholder="Ejemplo: 74125896"
+                                maxlength="8"
+                                inputmode="numeric"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                for="telefono"
+                                class="form-label required"
+                            >
+                                Teléfono
+                            </label>
+
+                            <input
+                                type="text"
+                                id="telefono"
+                                class="form-control"
+                                placeholder="Ejemplo: 987654321"
+                                maxlength="9"
+                                inputmode="numeric"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-12">
+
+                            <label
+                                for="licencia"
+                                class="form-label required"
+                            >
+                                Número de licencia
+                            </label>
+
+                            <input
+                                type="text"
+                                id="licencia"
+                                class="form-control text-uppercase"
+                                placeholder="Ejemplo: Q74125896"
+                                maxlength="20"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                        id="btnGuardarChofer"
+                    >
+                        <i class="bi bi-floppy me-2"></i>
+                        Guardar chofer
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- TOAST -->
+<div
+    class="toast-container position-fixed bottom-0 end-0 p-3"
+>
+
+    <div
+        id="toastMensaje"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+
+        <div class="d-flex">
+
+            <div
+                class="toast-body"
+                id="textoToast"
+            ></div>
+
+            <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast"
+                aria-label="Cerrar"
+            ></button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<script src="../js/config.js"></script>
+<script src="../js/permisos.js"></script>
+<script src="../js/choferes.js"></script>
+<script src="../js/alertas-global.js"></script>
+<script src="../js/sesion.js"></script>
+
+</body>
+
+</html>

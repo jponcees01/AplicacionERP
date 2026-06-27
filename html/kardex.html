@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Kardex de inventario</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/kardex.css">
+
+    <link rel="stylesheet" href="../css/sesion.css">
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <!-- =====================================================
+                 SIDEBAR
+            ====================================================== -->
+
+            <aside class="col-lg-2 sidebar p-4">
+
+                <div class="sidebar-contenido">
+
+                    <div>
+
+                        <div class="d-flex align-items-center gap-2 mb-5">
+
+                            <i class="bi bi-box-seam fs-3"></i>
+
+                            <span class="sidebar-title fs-5">
+                                Mi Inventario
+                            </span>
+
+                        </div>
+
+                        <nav>
+
+                            <a href="dashboard.html" class="menu-item">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+
+                            <a href="productos.html" class="menu-item solo-admin">
+                                <i class="bi bi-box"></i>
+                                Productos
+                            </a>
+
+                            <a href="inventario.html" class="menu-item">
+                                <i class="bi bi-boxes"></i>
+                                Inventario
+                            </a>
+
+                            <a href="kardex.html" class="menu-item active">
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                            <a href="solicitudStock.html" class="menu-item">
+                                <i class="bi bi-clipboard-check"></i>
+                                Solicitud de stock
+                            </a>
+
+                            <a href="envios.html" class="menu-item">
+                                <i class="bi bi-truck"></i>
+                                Envíos
+                            </a>
+
+                            <a href="devoluciones.html" class="menu-item">
+                                <i class="bi bi-arrow-return-left"></i>
+                                Devoluciones
+                            </a>
+
+                            <a href="ventas.html" class="menu-item">
+                                <i class="bi bi-cart-check"></i>
+                                Ventas
+                            </a>
+
+                            <a href="usuarios.html" class="menu-item solo-admin">
+                                <i class="bi bi-people"></i>
+                                Usuarios
+                            </a>
+
+                            <a href="choferes.html" class="menu-item solo-admin">
+                                <i class="bi bi-person-badge"></i>
+                                Choferes
+                            </a>
+
+                            <a href="vehiculos.html" class="menu-item solo-admin">
+                                <i class="bi bi-truck-front"></i>
+                                Vehículos
+                            </a>
+
+                            <a href="almacenes.html" class="menu-item solo-admin">
+                                <i class="bi bi-buildings"></i>
+                                Almacenes
+                            </a>
+
+                            <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                            <a href="chatbot.html" class="menu-item">
+                                <i class="bi bi-robot"></i>
+                                Asistente IA
+                            </a>
+
+                        </nav>
+
+                    </div>
+
+                    <!-- Usuario conectado -->
+
+                    <div class="usuario-sesion">
+
+                        <div class="usuario-info">
+
+                            <div class="usuario-avatar" id="usuarioAvatar">
+                                U
+                            </div>
+
+                            <div class="usuario-datos">
+
+                                <strong id="nombreUsuarioSesion">
+                                    Usuario
+                                </strong>
+
+                                <small id="rolUsuarioSesion">
+                                    Sin rol
+                                </small>
+
+                                <span id="usernameSesion">
+                                    @usuario
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" class="btn-salir" onclick="cerrarSesion()">
+
+                            <i class="bi bi-box-arrow-right"></i>
+
+                            Cerrar sesión
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+            <!-- =====================================================
+                 CONTENIDO PRINCIPAL
+            ====================================================== -->
+
+            <main class="col-lg-10 px-0">
+
+                <!-- Encabezado -->
+
+                <header class="page-header px-4 py-3">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                        <div>
+
+                            <h4 class="fw-bold mb-1">
+                                Kardex de inventario
+                            </h4>
+
+                            <small class="text-muted">
+                                Consulta las entradas, salidas y movimientos de productos.
+                            </small>
+
+                        </div>
+
+                        <button type="button" class="btn btn-outline-success" id="btnExportarKardex">
+
+                            <i class="bi bi-file-earmark-excel me-2"></i>
+
+                            Exportar
+
+                        </button>
+
+                    </div>
+
+                </header>
+
+                <div class="p-4">
+
+                    <!-- =================================================
+                         RESUMEN
+                    ================================================== -->
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-xl-3 col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-primary-subtle text-primary">
+                                        <i class="bi bi-list-check"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Total movimientos
+                                        </small>
+
+                                        <h4 id="totalMovimientos" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-success-subtle text-success">
+                                        <i class="bi bi-box-arrow-in-down"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Entradas
+                                        </small>
+
+                                        <h4 id="totalEntradas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-danger-subtle text-danger">
+                                        <i class="bi bi-box-arrow-up"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Salidas
+                                        </small>
+
+                                        <h4 id="totalSalidas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl-3 col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-warning-subtle text-warning">
+                                        <i class="bi bi-boxes"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Stock resultante
+                                        </small>
+
+                                        <h4 id="stockResultante" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                         FILTROS
+                    ================================================== -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-body">
+
+                            <div class="row g-3 align-items-end">
+
+                                <!-- Buscar -->
+
+                                <div class="col-xl-3 col-lg-6 col-md-12">
+
+                                    <label for="buscarKardex" class="form-label">
+                                        Buscar
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+
+                                        <input type="text" id="buscarKardex" class="form-control"
+                                            placeholder="Producto, variante o documento" autocomplete="off">
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Tipo -->
+
+                                <div class="col-xl-2 col-lg-3 col-md-6">
+
+                                    <label for="filtroTipoMovimiento" class="form-label">
+                                        Tipo
+                                    </label>
+
+                                    <select id="filtroTipoMovimiento" class="form-select">
+
+                                        <option value="">
+                                            Todos
+                                        </option>
+
+                                        <option value="ENTRADA">
+                                            Entrada
+                                        </option>
+
+                                        <option value="SALIDA">
+                                            Salida
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Motivo -->
+
+                                <div class="col-xl-2 col-lg-3 col-md-6">
+
+                                    <select id="filtroMotivo" class="form-select">
+                                        <option value="">
+                                            Todos
+                                        </option>
+
+                                        <option value="VENTA">
+                                            Venta
+                                        </option>
+
+                                        <option value="COMPRA">
+                                            Compra
+                                        </option>
+
+                                        <option value="GUIA_ENVIO">
+                                            Guía de envío
+                                        </option>
+
+                                        <option value="DEVOLUCION">
+                                            Devolución
+                                        </option>
+
+                                        <option value="REABASTECIMIENTO">
+                                            Reabastecimiento
+                                        </option>
+
+                                        <option value="AJUSTE">
+                                            Ajuste
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <!-- Almacén -->
+
+                                <div class="col-xl-2 col-lg-3 col-md-6">
+
+                                <label class="form-label">Almacén</label>
+
+                                <select id="filtroAlmacen" class="form-select">
+
+                                    <option value="">
+
+                                        Todos
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                                <!-- Fecha inicial -->
+
+                                <div class="col-xl-2 col-lg-4 col-md-6">
+
+                                    <label for="fechaInicio" class="form-label">
+                                        Fecha inicial
+                                    </label>
+
+                                    <input type="date" id="fechaInicio" class="form-control">
+
+                                </div>
+
+                                <!-- Fecha final -->
+
+                                <div class="col-xl-2 col-lg-4 col-md-6">
+
+                                    <label for="fechaFin" class="form-label">
+                                        Fecha final
+                                    </label>
+
+                                    <input type="date" id="fechaFin" class="form-control">
+
+                                </div>
+
+                                <!-- Limpiar -->
+
+                                <div class="col-xl-1 col-lg-4 col-md-12">
+
+                                    <button type="button" class="btn btn-outline-secondary w-100" id="btnLimpiarFiltros"
+                                        title="Limpiar filtros">
+
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+
+                                        <span class="d-xl-none ms-2">
+                                            Limpiar
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                         TABLA KARDEX
+                    ================================================== -->
+
+                    <div class="card">
+
+                        <div class="card-header bg-white border-0 px-4 pt-4">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                                <div>
+
+                                    <h5 class="fw-bold mb-1">
+                                        Movimientos de inventario
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Historial de movimientos registrados en el almacén.
+                                    </small>
+
+                                </div>
+
+                                <span class="badge text-bg-light border" id="cantidadRegistrosKardex">
+                                    0 registros
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="card-body p-4">
+
+                            <div class="table-responsive">
+
+                                <table class="table table-hover align-middle kardex-table">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>
+                                                Fecha
+                                            </th>
+
+                                            <th>
+                                                Producto
+                                            </th>
+
+                                            <th>
+                                                Variante
+                                            </th>
+
+                                            <th>
+                                                Tipo
+                                            </th>
+
+                                            <th>
+                                                Motivo
+                                            </th>
+
+                                            <th class="text-center">
+                                                Cantidad
+                                            </th>
+
+                                            <th class="text-end">
+                                                Costo unitario
+                                            </th>
+                                            
+                                            <th class="text-end">
+                                                Costo Total
+                                            </th>
+
+                                            <th class="text-center">
+                                                Stock anterior
+                                            </th>
+
+                                            <th class="text-center">
+                                                Stock resultante
+                                            </th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody id="tablaKardex">
+
+                                        <tr>
+
+                                            <td colspan="9" class="text-center text-muted py-5">
+
+                                                <i class="bi bi-journal-x fs-1 d-block mb-3"></i>
+
+                                                No hay movimientos para mostrar.
+
+                                            </td>
+
+                                        </tr>
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                            <!-- Sin resultados -->
+
+                            <div id="sinMovimientos" class="text-center py-5 d-none">
+
+                                <i class="bi bi-journal-x fs-1 text-muted"></i>
+
+                                <h5 class="mt-3">
+                                    No se encontraron movimientos
+                                </h5>
+
+                                <p class="text-muted mb-0">
+                                    Modifica los filtros para realizar otra búsqueda.
+                                </p>
+
+                            </div>
+
+                            <!-- Paginación -->
+
+                            <div id="contenedorPaginacionKardex"
+                                class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+
+                                <small id="textoPaginacionKardex" class="text-muted">
+                                    Página 1 de 1
+                                </small>
+
+                                <nav aria-label="Paginación del kardex">
+
+                                    <ul class="pagination pagination-sm mb-0" id="paginacionKardex"></ul>
+
+                                </nav>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         TOAST
+    ========================================================== -->
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+
+        <div id="toastMensaje" class="toast align-items-center text-bg-success border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
+
+            <div class="d-flex">
+
+                <div class="toast-body" id="textoToast"></div>
+
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Cerrar"></button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         SCRIPTS
+    ========================================================== -->
+
+    <script src="../js/config.js"></script>
+    <script src="../js/permisos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="../js/kardex.js"></script>
+    <script src="../js/alertas-global.js"></script>
+    <script src="../js/sesion.js"></script>
+
+</body>
+
+</html>

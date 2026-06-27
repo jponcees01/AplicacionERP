@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de devoluciones</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/devoluciones.css">
+
+    <link rel="stylesheet" href="../css/sesion.css">
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <!-- =====================================================
+             MENÚ LATERAL
+        ====================================================== -->
+
+            <aside class="col-lg-2 sidebar p-4">
+
+                <div class="sidebar-contenido">
+
+                    <div>
+
+                        <div class="d-flex align-items-center gap-2 mb-5">
+
+                            <i class="bi bi-box-seam fs-3"></i>
+
+                            <span class="sidebar-title fs-5">
+                                Mi Inventario
+                            </span>
+
+                        </div>
+
+                        <nav>
+
+                            <a href="dashboard.html" class="menu-item">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+
+                            <a href="productos.html" class="menu-item solo-admin">
+                                <i class="bi bi-box"></i>
+                                Productos
+                            </a>
+
+                            <a href="inventario.html" class="menu-item">
+                                <i class="bi bi-boxes"></i>
+                                Inventario
+                            </a>
+
+                            <a href="kardex.html" class="menu-item">
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                            <a href="solicitudStock.html" class="menu-item">
+                                <i class="bi bi-clipboard-check"></i>
+                                Solicitud de stock
+                            </a>
+
+                            <a href="envios.html" class="menu-item">
+                                <i class="bi bi-truck"></i>
+                                Envíos
+                            </a>
+
+                            <a href="devoluciones.html" class="menu-item active">
+                                <i class="bi bi-arrow-return-left"></i>
+                                Devoluciones
+                            </a>
+
+                            <a href="ventas.html" class="menu-item">
+                                <i class="bi bi-cart-check"></i>
+                                Ventas
+                            </a>
+
+                            <a href="usuarios.html" class="menu-item solo-admin">
+                                <i class="bi bi-people"></i>
+                                Usuarios
+                            </a>
+
+                            <a href="choferes.html" class="menu-item solo-admin">
+                                <i class="bi bi-person-badge"></i>
+                                Choferes
+                            </a>
+
+                            <a href="vehiculos.html" class="menu-item solo-admin">
+                                <i class="bi bi-truck-front"></i>
+                                Vehículos
+                            </a>
+
+                            <a href="almacenes.html" class="menu-item solo-admin">
+                                <i class="bi bi-buildings"></i>
+                                Almacenes
+                            </a>
+
+                            <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                            <a href="chatbot.html" class="menu-item">
+                                <i class="bi bi-robot"></i>
+                                Asistente IA
+                            </a>
+
+                        </nav>
+
+                    </div>
+
+                    <!-- Usuario que inició sesión -->
+
+                    <div class="usuario-sesion">
+
+                        <div class="usuario-info">
+
+                            <div class="usuario-avatar" id="usuarioAvatar">
+                                U
+                            </div>
+
+                            <div class="usuario-datos">
+
+                                <strong id="nombreUsuarioSesion">
+                                    Usuario
+                                </strong>
+
+                                <small id="rolUsuarioSesion">
+                                    Sin rol
+                                </small>
+
+                                <span id="usernameSesion">
+                                    @usuario
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" class="btn-salir" onclick="cerrarSesion()">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Cerrar sesión
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+            <!-- =====================================================
+             CONTENIDO PRINCIPAL
+        ====================================================== -->
+
+            <main class="col-lg-10 px-0">
+
+                <header class="page-header px-4 py-3">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                        <div>
+
+                            <h4 class="fw-bold mb-1">
+                                Gestión de devoluciones
+                            </h4>
+
+                            <small class="text-muted">
+                                Registra, envía, recibe y consulta devoluciones entre almacenes.
+                            </small>
+
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="abrirModalNuevaDevolucion()">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Nueva devolución
+                        </button>
+
+                    </div>
+
+                </header>
+
+                <div class="p-4">
+
+                    <!-- =================================================
+                     RESUMEN
+                ================================================== -->
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-xl col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-primary-subtle text-primary">
+
+                                        <i class="bi bi-arrow-return-left"></i>
+
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Total
+                                        </small>
+
+                                        <h4 id="totalDevoluciones" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-warning-subtle text-warning">
+
+                                        <i class="bi bi-file-earmark-text"></i>
+
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Creadas
+                                        </small>
+
+                                        <h4 id="totalCreadas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-info-subtle text-info">
+
+                                        <i class="bi bi-truck"></i>
+
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            En tránsito
+                                        </small>
+
+                                        <h4 id="totalEnTransito" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-success-subtle text-success">
+
+                                        <i class="bi bi-check-circle"></i>
+
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Recibidas
+                                        </small>
+
+                                        <h4 id="totalRecibidas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-xl col-md-6">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-danger-subtle text-danger">
+
+                                        <i class="bi bi-x-circle"></i>
+
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Anuladas
+                                        </small>
+
+                                        <h4 id="totalAnuladas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                     FILTROS
+                ================================================== -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-body">
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-xl-4 col-lg-6">
+
+                                    <label for="buscarDevolucion" class="form-label">
+                                        Buscar devolución
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+
+                                        <input type="text" id="buscarDevolucion" class="form-control"
+                                            placeholder="Número, usuario, almacén, estado o tipo...">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xl-2 col-lg-3">
+
+                                    <label for="filtroEstado" class="form-label">
+                                        Estado
+                                    </label>
+
+                                    <select id="filtroEstado" class="form-select">
+
+                                        <option value="todos">
+                                            Todos
+                                        </option>
+
+                                        <option value="CREADO">
+                                            Creado
+                                        </option>
+
+                                        <option value="PROCESADO">
+                                            Procesado
+                                        </option>
+
+                                        <option value="EN_TRANSITO">
+                                            En tránsito
+                                        </option>
+
+                                        <option value="RECIBIDO">
+                                            Recibido
+                                        </option>
+
+                                        <option value="ANULADO">
+                                            Anulado
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-xl-2 col-lg-3">
+
+                                    <label for="fechaInicio" class="form-label">
+                                        Desde
+                                    </label>
+
+                                    <input type="date" id="fechaInicio" class="form-control">
+
+                                </div>
+
+                                <div class="col-xl-2 col-lg-3">
+
+                                    <label for="fechaFin" class="form-label">
+                                        Hasta
+                                    </label>
+
+                                    <input type="date" id="fechaFin" class="form-control">
+
+                                </div>
+
+                                <div class="col-xl-2 col-lg-3">
+
+                                    <button type="button" class="btn btn-outline-secondary w-100"
+                                        onclick="limpiarFiltros()">
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i>
+                                        Limpiar
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                     TABLA DE DEVOLUCIONES
+                ================================================== -->
+
+                    <div class="card">
+
+                        <div class="card-header bg-white border-0 px-4 pt-4">
+
+                            <h5 class="fw-bold mb-1">
+                                Devoluciones registradas
+                            </h5>
+
+                            <small class="text-muted">
+                                Consulta el estado y las operaciones disponibles.
+                            </small>
+
+                        </div>
+
+                        <div class="card-body p-4">
+
+                            <div class="table-responsive">
+
+                                <table class="table table-hover align-middle">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>
+                                                N.º devolución
+                                            </th>
+
+                                            <th>
+                                                Fecha
+                                            </th>
+
+                                            <th>
+                                                Tipo
+                                            </th>
+
+                                            <th>
+                                                Origen
+                                            </th>
+
+                                            <th>
+                                                Destino
+                                            </th>
+
+                                            <th>
+                                                Estado
+                                            </th>
+
+                                            <th class="text-center">
+                                                Acciones
+                                            </th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody id="tablaDevoluciones">
+
+                                        <tr>
+
+                                            <td colspan="7" class="text-center py-5 text-muted">
+
+                                                <span class="spinner-border spinner-border-sm me-2"
+                                                    role="status"></span>
+
+                                                Cargando devoluciones...
+
+                                            </td>
+
+                                        </tr>
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                            <div id="sinDevoluciones" class="text-center py-5 d-none">
+
+                                <i class="bi bi-arrow-return-left fs-1 text-muted"></i>
+
+                                <h5 class="mt-3">
+                                    No se encontraron devoluciones
+                                </h5>
+
+                                <p class="text-muted mb-0">
+                                    Registra una devolución o cambia los filtros.
+                                </p>
+
+                            </div>
+
+                            <!-- Paginación -->
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+
+                                <small id="textoPaginacion" class="text-muted">
+                                    Sin registros
+                                </small>
+
+                                <nav aria-label="Paginación de devoluciones">
+
+                                    <ul class="pagination pagination-sm mb-0">
+
+                                        <li id="itemPaginaAnterior" class="page-item disabled">
+
+                                            <button type="button" class="page-link" onclick="cambiarPagina(-1)"
+                                                aria-label="Página anterior">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+
+                                        </li>
+
+                                        <li class="page-item active">
+
+                                            <span id="paginaActual" class="page-link">
+                                                1
+                                            </span>
+
+                                        </li>
+
+                                        <li id="itemPaginaSiguiente" class="page-item disabled">
+
+                                            <button type="button" class="page-link" onclick="cambiarPagina(1)"
+                                                aria-label="Página siguiente">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+
+                                        </li>
+
+                                    </ul>
+
+                                </nav>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+     MODAL PARA REGISTRAR DEVOLUCIÓN
+========================================================== -->
+
+    <div class="modal fade" id="modalDevolucion" tabindex="-1" aria-labelledby="modalDevolucionLabel"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <h5 class="modal-title fw-bold" id="modalDevolucionLabel">
+
+                            <i class="bi bi-arrow-return-left text-primary me-2"></i>
+
+                            Registrar devolución
+
+                        </h5>
+
+                        <small class="text-muted">
+                            Selecciona un envío recibido y agrega los productos que serán devueltos.
+                        </small>
+
+                    </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <!-- =============================================
+                     DATOS GENERALES
+                ============================================== -->
+
+                    <div class="card border shadow-none mb-4">
+
+                        <div class="card-body">
+
+                            <h6 class="fw-bold mb-3">
+                                Datos generales
+                            </h6>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label for="envioRelacionado" class="form-label required">
+                                        Envío relacionado
+                                    </label>
+
+                                    <select id="envioRelacionado" class="form-select" onchange="cargarDatosEnvio()">
+
+                                        <option value="">
+                                            Seleccionar envío
+                                        </option>
+
+                                    </select>
+
+                                    <div class="invalid-feedback">
+                                        Selecciona el envío relacionado.
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label for="tipoDevolucion" class="form-label required">
+                                        Tipo de devolución
+                                    </label>
+
+                                    <select id="tipoDevolucion" class="form-select">
+
+                                        <option value="">
+                                            Seleccionar tipo
+                                        </option>
+
+                                        <option value="DEFECTUOSO">
+                                            Defectuoso
+                                        </option>
+
+                                        <option value="ERROR_DESPACHO">
+                                            Error de despacho
+                                        </option>
+
+                                        <option value="SOBRANTE">
+                                            Sobrante
+                                        </option>
+
+                                        <option value="GARANTIA">
+                                            Garantía
+                                        </option>
+
+                                        <option value="VENCIDO">
+                                            Vencido
+                                        </option>
+
+                                        <option value="OTRO">
+                                            Otro
+                                        </option>
+
+                                    </select>
+
+                                    <div class="invalid-feedback">
+                                        Selecciona el tipo de devolución.
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label for="chofer" class="form-label required">
+                                        Chofer
+                                    </label>
+
+                                    <select id="chofer" class="form-select">
+
+                                        <option value="">
+                                            Seleccionar chofer
+                                        </option>
+
+                                    </select>
+
+                                    <div class="invalid-feedback">
+                                        Selecciona el chofer.
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label for="vehiculo" class="form-label required">
+                                        Vehículo
+                                    </label>
+
+                                    <select id="vehiculo" class="form-select">
+
+                                        <option value="">
+                                            Seleccionar vehículo
+                                        </option>
+
+                                    </select>
+
+                                    <div class="invalid-feedback">
+                                        Selecciona el vehículo.
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label for="almacenOrigen" class="form-label">
+                                        Almacén de origen
+                                    </label>
+
+                                    <input type="text" id="almacenOrigen" class="form-control"
+                                        placeholder="Se completa al seleccionar el envío" readonly>
+
+                                    <input type="hidden" id="idAlmacenOrigen">
+
+                                </div>
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label for="almacenDestino" class="form-label">
+                                        Almacén de destino
+                                    </label>
+
+                                    <input type="text" id="almacenDestino" class="form-control"
+                                        placeholder="Se completa al seleccionar el envío" readonly>
+
+                                    <input type="hidden" id="idAlmacenDestino">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =============================================
+                     AGREGAR PRODUCTOS
+                ============================================== -->
+
+                    <div class="card border shadow-none mb-4">
+
+                        <div class="card-body">
+
+                            <h6 class="fw-bold mb-3">
+                                Agregar productos a la devolución
+                            </h6>
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-xl-4 col-lg-6">
+
+                                    <label for="productoSeleccionado" class="form-label required">
+                                        Producto
+                                    </label>
+
+                                    <select id="productoSeleccionado" class="form-select"
+                                        onchange="actualizarDatosProductoDevolucion()" disabled>
+
+                                        <option value="">
+                                            Selecciona primero un envío
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-xl-2 col-lg-3">
+
+                                    <label for="cantidadEnviada" class="form-label">
+                                        Cantidad enviada
+                                    </label>
+
+                                    <input type="number" id="cantidadEnviada" class="form-control" value="0" min="0"
+                                        readonly>
+
+                                </div>
+
+                                <div class="col-xl-2 col-lg-3">
+
+                                    <label for="cantidadDevuelta" class="form-label required">
+                                        Cantidad a devolver
+                                    </label>
+
+                                    <input type="number" id="cantidadDevuelta" class="form-control" min="1" max="1"
+                                        step="1" value="1" disabled oninput="validarCantidadDevuelta(this)">
+
+                                </div>
+
+                                <div class="col-xl-4 col-lg-6">
+
+                                    <label for="motivoProducto" class="form-label required">
+                                        Motivo del producto
+                                    </label>
+
+                                    <input type="text" id="motivoProducto" class="form-control" maxlength="255"
+                                        placeholder="Ejemplo: Producto con empaque dañado">
+
+                                </div>
+
+                                <div class="col-xl-9 col-lg-8">
+
+                                    <label for="observacionProducto" class="form-label">
+                                        Observación
+                                    </label>
+
+                                    <input type="text" id="observacionProducto" class="form-control" maxlength="500"
+                                        placeholder="Información adicional del producto">
+
+                                </div>
+
+                                <div class="col-xl-3 col-lg-4">
+
+                                    <button type="button" class="btn btn-primary w-100"
+                                        onclick="agregarProductoDevolucion()">
+
+                                        <i class="bi bi-plus-circle me-2"></i>
+
+                                        Agregar producto
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =============================================
+                     DETALLE DE PRODUCTOS
+                ============================================== -->
+
+                    <div class="table-responsive border rounded">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+
+                                    <th>
+                                        Producto
+                                    </th>
+
+                                    <th>
+                                        Variante
+                                    </th>
+
+                                    <th>
+                                        Unidad
+                                    </th>
+
+                                    <th class="text-center">
+                                        Cantidad enviada
+                                    </th>
+
+                                    <th class="text-center">
+                                        Cantidad devuelta
+                                    </th>
+
+                                    <th>
+                                        Motivo
+                                    </th>
+
+                                    <th>
+                                        Observación
+                                    </th>
+
+                                    <th class="text-center">
+                                        Acción
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="tablaDetalleDevolucion">
+
+                                <tr>
+
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        Todavía no has agregado productos.
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                            <tfoot>
+
+                                <tr class="table-light">
+
+                                    <td colspan="4" class="text-end fw-bold">
+                                        Total de unidades devueltas:
+                                    </td>
+
+                                    <td id="totalUnidadesDevolucion" class="fw-bold text-center">
+                                        0
+                                    </td>
+
+                                    <td colspan="3"></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="button" id="btnRegistrarDevolucion" class="btn btn-success"
+                        onclick="registrarDevolucion()">
+
+                        <i class="bi bi-floppy me-2"></i>
+
+                        Registrar devolución
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+     MODAL PARA VER DETALLE
+========================================================== -->
+
+    <div class="modal fade" id="modalDetalleDevolucion" tabindex="-1" aria-labelledby="modalDetalleDevolucionLabel"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title fw-bold" id="modalDetalleDevolucionLabel">
+
+                        <i class="bi bi-eye text-primary me-2"></i>
+
+                        Detalle de devolución
+
+                    </h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                </div>
+
+                <div class="modal-body p-4" id="contenidoDetalleDevolucion">
+
+                    <div class="text-center py-5 text-muted">
+                        Selecciona una devolución para consultar su detalle.
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+     MODAL PARA ANULAR DEVOLUCIÓN
+========================================================== -->
+
+    <div class="modal fade" id="modalAnularDevolucion" tabindex="-1" aria-labelledby="modalAnularDevolucionLabel"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title fw-bold" id="modalAnularDevolucionLabel">
+
+                        <i class="bi bi-x-circle text-danger me-2"></i>
+
+                        Anular devolución
+
+                    </h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" id="idDevolucionAnular">
+
+                    <div class="alert alert-warning">
+
+                        Vas a anular la devolución:
+
+                        <strong id="numeroDevolucionAnular">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <label for="motivoAnulacionDevolucion" class="form-label required">
+                        Motivo de anulación
+                    </label>
+
+                    <textarea id="motivoAnulacionDevolucion" class="form-control" rows="4" maxlength="500"
+                        placeholder="Describe el motivo de la anulación"></textarea>
+
+                    <div class="invalid-feedback">
+                        Ingresa el motivo de anulación.
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="button" id="btnConfirmarAnulacionDevolucion" class="btn btn-danger"
+                        onclick="confirmarAnulacionDevolucion()">
+
+                        <i class="bi bi-x-circle me-2"></i>
+
+                        Anular devolución
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+     MODAL PARA VISUALIZAR PDF
+========================================================== -->
+
+    <div class="modal fade" id="modalPreviewPdfDevolucion" tabindex="-1"
+        aria-labelledby="modalPreviewPdfDevolucionLabel" aria-hidden="true">
+
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title fw-bold" id="modalPreviewPdfDevolucionLabel">
+
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+
+                        Guía de devolución
+
+                    </h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                </div>
+
+                <div class="modal-body p-0">
+
+                    <iframe id="iframeDevolucionPdf" title="PDF de devolución" style="
+                        width: 100%;
+                        height: 75vh;
+                        border: 0;
+                    "></iframe>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+     TOAST DE MENSAJES
+========================================================== -->
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+
+        <div id="toastMensaje" class="toast align-items-center text-bg-success border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
+
+            <div class="d-flex">
+
+                <div id="textoToast" class="toast-body"></div>
+
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Cerrar"></button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+     SCRIPTS
+========================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/permisos.js"></script>
+    <script src="../js/sesion.js"></script>
+    <script src="../js/alertas-global.js"></script>
+    <script src="../js/devoluciones.js"></script>
+
+</body>
+
+</html>

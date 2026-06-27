@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de ventas</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../CSS/ventas.css">
+
+    <link rel="stylesheet" href="../css/sesion.css">
+<style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <!-- =====================================================
+                 SIDEBAR
+            ====================================================== -->
+
+            <aside class="col-lg-2 sidebar p-4">
+
+                <div class="sidebar-contenido">
+
+                    <div>
+
+                        <div class="d-flex align-items-center gap-2 mb-5">
+
+                            <i class="bi bi-box-seam fs-3"></i>
+
+                            <span class="sidebar-title fs-5">
+                                Mi Inventario
+                            </span>
+
+                        </div>
+
+                        <nav>
+
+                            <a href="dashboard.html" class="menu-item">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+
+                            <a href="productos.html" class="menu-item solo-admin">
+                                <i class="bi bi-box"></i>
+                                Productos
+                            </a>
+
+                            <a href="inventario.html" class="menu-item">
+                                <i class="bi bi-boxes"></i>
+                                Inventario
+                            </a>
+
+                            <a href="kardex.html" class="menu-item">
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                            <a href="solicitudStock.html" class="menu-item">
+                                <i class="bi bi-clipboard-check"></i>
+                                Solicitud de stock
+                            </a>
+
+                            <a href="envios.html" class="menu-item">
+                                <i class="bi bi-truck"></i>
+                                Envíos
+                            </a>
+
+                            <a href="devoluciones.html" class="menu-item">
+                                <i class="bi bi-arrow-return-left"></i>
+                                Devoluciones
+                            </a>
+
+                            <a href="ventas.html" class="menu-item active">
+                                <i class="bi bi-cart-check"></i>
+                                Ventas
+                            </a>
+
+                            <a href="usuarios.html" class="menu-item solo-admin">
+                                <i class="bi bi-people"></i>
+                                Usuarios
+                            </a>
+
+                            <a href="choferes.html" class="menu-item solo-admin">
+                                <i class="bi bi-person-badge"></i>
+                                Choferes
+                            </a>
+
+                            <a href="vehiculos.html" class="menu-item solo-admin">
+                                <i class="bi bi-truck-front"></i>
+                                Vehículos
+                            </a>
+
+                            <a href="almacenes.html" class="menu-item solo-admin">
+                                <i class="bi bi-buildings"></i>
+                                Almacenes
+                            </a>
+
+                            <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                            <a href="chatbot.html" class="menu-item">
+                                <i class="bi bi-robot"></i>
+                                <span>Asistente IA</span>
+                            </a>
+
+                        </nav>
+
+                    </div>
+
+                    <!-- Usuario que inició sesión -->
+
+                    <div class="usuario-sesion">
+
+                        <div class="usuario-info">
+
+                            <div class="usuario-avatar" id="usuarioAvatar">
+                                U
+                            </div>
+
+                            <div class="usuario-datos">
+
+                                <strong id="nombreUsuarioSesion">
+                                    Usuario
+                                </strong>
+
+                                <small id="rolUsuarioSesion">
+                                    Sin rol
+                                </small>
+
+                                <span id="usernameSesion">
+                                    @usuario
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" class="btn-salir" onclick="cerrarSesion()">
+
+                            <i class="bi bi-box-arrow-right"></i>
+
+                            Cerrar sesión
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+            <!-- =====================================================
+                 CONTENIDO PRINCIPAL
+            ====================================================== -->
+
+            <main class="col-lg-10 px-0">
+
+                <!-- Encabezado -->
+
+                <header class="page-header px-4 py-3">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                        <div>
+
+                            <h4 class="fw-bold mb-1">
+                                Gestión de ventas
+                            </h4>
+
+                            <small class="text-muted">
+                                Registra y consulta las ventas realizadas.
+                            </small>
+
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="abrirModalNuevaVenta()">
+
+                            <i class="bi bi-plus-circle me-2"></i>
+
+                            Nueva venta
+
+                        </button>
+
+                    </div>
+
+                </header>
+
+                <div class="p-4">
+
+                    <!-- =================================================
+                         RESUMEN
+                    ================================================== -->
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-4">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-primary-subtle text-primary">
+                                        <i class="bi bi-receipt"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Total de ventas
+                                        </small>
+
+                                        <h4 id="totalVentas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-success-subtle text-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Ventas completadas
+                                        </small>
+
+                                        <h4 id="totalCompletadas" class="fw-bold mb-0">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <div class="card resumen-card h-100">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-warning-subtle text-warning">
+                                        <i class="bi bi-cash-stack"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Importe registrado
+                                        </small>
+
+                                        <h4 id="importeTotalVentas" class="fw-bold mb-0">
+                                            S/ 0.00
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                         FILTROS
+                    ================================================== -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-body">
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-lg-4">
+
+                                    <label for="buscarVenta" class="form-label">
+                                        Buscar venta
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+
+                                        <input type="text" id="buscarVenta" class="form-control"
+                                            placeholder="Número, usuario, ID o total" autocomplete="off">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <label for="filtroEstado" class="form-label">
+                                        Estado
+                                    </label>
+
+                                    <select id="filtroEstado" class="form-select">
+
+                                        <option value="">
+                                            Todos
+                                        </option>
+
+                                        <option value="PROCESADO">
+                                            Procesado
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <label for="fechaInicio" class="form-label">
+                                        Fecha inicial
+                                    </label>
+
+                                    <input type="date" id="fechaInicio" class="form-control">
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <label for="fechaFin" class="form-label">
+                                        Fecha final
+                                    </label>
+
+                                    <input type="date" id="fechaFin" class="form-control">
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <button type="button" class="btn btn-outline-secondary w-100"
+                                        onclick="limpiarFiltros()">
+
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i>
+
+                                        Limpiar
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                         TABLA DE VENTAS
+                    ================================================== -->
+
+                    <div class="card">
+
+                        <div class="card-header bg-white border-0 px-4 pt-4">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                                <div>
+
+                                    <h5 class="fw-bold mb-1">
+                                        Ventas registradas
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Consulta la cabecera, detalle y comprobante.
+                                    </small>
+
+                                </div>
+
+                                <span class="badge text-bg-light border" id="cantidadRegistrosVenta">
+                                    0 registros
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="card-body p-4">
+
+                            <div class="table-responsive">
+
+                                <table class="table table-hover align-middle">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>ID</th>
+
+                                            <th>N.º comprobante</th>
+
+                                            <th>Fecha</th>
+
+                                            <th>Usuario</th>
+
+                                            <th>Total</th>
+
+                                            <th>Estado</th>
+
+                                            <th class="text-center">
+                                                Acciones
+                                            </th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody id="tablaVentas"></tbody>
+
+                                </table>
+
+                            </div>
+
+                            <!-- Sin resultados -->
+
+                            <div id="sinVentas" class="text-center py-5 d-none">
+
+                                <i class="bi bi-cart-x fs-1 text-muted"></i>
+
+                                <h5 class="mt-3">
+                                    No se encontraron ventas
+                                </h5>
+
+                                <p class="text-muted mb-0">
+                                    Registra una nueva venta o modifica los filtros.
+                                </p>
+
+                            </div>
+
+                            <!-- Paginación -->
+
+                            <div id="contenedorPaginacion"
+                                class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+
+                                <small id="textoPaginacion" class="text-muted">
+                                    Página 1 de 1
+                                </small>
+
+                                <nav aria-label="Paginación de ventas">
+
+                                    <ul class="pagination pagination-sm mb-0" id="paginacionVentas"></ul>
+
+                                </nav>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         MODAL REGISTRAR VENTA
+    ========================================================== -->
+
+    <div class="modal fade" id="modalVenta" tabindex="-1" aria-labelledby="modalVentaLabel" aria-hidden="true">
+
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <h5 class="modal-title fw-bold" id="modalVentaLabel">
+
+                            <i class="bi bi-cart-check text-primary me-2"></i>
+
+                            Registrar nueva venta
+
+                        </h5>
+
+                        <small class="text-muted">
+                            Selecciona el almacén y agrega los productos vendidos.
+                        </small>
+
+                    </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <!-- Datos generales -->
+
+                    <div class="card border shadow-none mb-4">
+
+                        <div class="card-body">
+
+                            <h6 class="fw-bold mb-3">
+                                Datos de la venta
+                            </h6>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <label for="idAlmacen" class="form-label required">
+                                        Almacén
+                                    </label>
+
+                                    <select id="idAlmacen" class="form-select">
+
+                                        <option value="">
+                                            Seleccionar almacén
+                                        </option>
+
+                                    </select>
+
+                                    <small id="ayudaAlmacen" class="text-muted">
+                                        Se utilizará el almacén asignado al usuario.
+                                    </small>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label for="tipoComprobante" class="form-label required">
+                                        Tipo de comprobante
+                                    </label>
+
+                                    <select id="tipoComprobante" class="form-select">
+
+                                        <option value="">
+                                            Seleccionar comprobante
+                                        </option>
+
+                                        <option value="BOLETA">
+                                            Boleta
+                                        </option>
+
+                                        <option value="FACTURA">
+                                            Factura
+                                        </option>
+
+                                        <option value="NOTA_VENTA">
+                                            Nota de venta
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label for="observacion" class="form-label">
+                                        Observación
+                                    </label>
+
+                                    <textarea id="observacion" class="form-control" rows="2" maxlength="500"
+                                        placeholder="Información adicional de la venta"></textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Selección de productos -->
+
+                    <div class="card border shadow-none mb-4">
+
+                        <div class="card-body">
+
+                            <h6 class="fw-bold mb-3">
+                                Agregar productos
+                            </h6>
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-lg-5">
+
+                                    <label for="productoSeleccionado" class="form-label required">
+                                        Producto disponible
+                                    </label>
+
+                                    <select id="productoSeleccionado" class="form-select" disabled>
+
+                                        <option value="">
+                                            Primero selecciona un almacén
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <label for="stockProducto" class="form-label">
+                                        Stock
+                                    </label>
+
+                                    <input type="number" id="stockProducto" class="form-control" value="0" readonly>
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <label for="cantidadProducto" class="form-label required">
+                                        Cantidad
+                                    </label>
+
+                                    <input type="number" id="cantidadProducto" class="form-control" min="1" step="1"
+                                        value="1">
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <label for="precioVentaProducto" class="form-label required">
+                                        Precio
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            S/
+                                        </span>
+
+                                        <input type="number" id="precioVentaProducto" class="form-control" min="0.01"
+                                            step="0.01" placeholder="0.00">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-1">
+
+                                    <button type="button" class="btn btn-primary w-100" title="Agregar producto"
+                                        onclick="agregarProductoVenta()">
+
+                                        <i class="bi bi-plus-lg"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Tabla del detalle -->
+
+                    <div class="table-responsive border rounded">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+
+                                    <th>Código</th>
+
+                                    <th>Producto</th>
+
+                                    <th>Variante</th>
+
+                                    <th>Unidad</th>
+
+                                    <th>Stock</th>
+
+                                    <th>Cantidad</th>
+
+                                    <th>Precio unitario</th>
+
+                                    <th>Subtotal</th>
+
+                                    <th class="text-center">
+                                        Acción
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="tablaDetalleVenta">
+
+                                <tr id="filaDetalleVacio">
+
+                                    <td colspan="9" class="text-center text-muted py-4">
+
+                                        <i class="bi bi-cart-plus fs-4 d-block mb-2"></i>
+
+                                        Todavía no agregaste productos.
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <!-- Total -->
+
+                    <div class="row justify-content-end mt-4">
+
+                        <div class="col-md-5 col-lg-4">
+
+                            <div class="totales-container">
+
+                                <div class="total-fila total-final">
+
+                                    <span>
+                                        Total
+                                    </span>
+
+                                    <strong id="totalVenta">
+                                        S/ 0.00
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="button" class="btn btn-success" id="btnRegistrarVenta" onclick="registrarVenta()">
+
+                        <i class="bi bi-floppy me-2"></i>
+
+                        Registrar venta
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         MODAL DETALLE DE VENTA
+    ========================================================== -->
+
+    <div class="modal fade" id="modalDetalleVenta" tabindex="-1" aria-labelledby="modalDetalleVentaLabel"
+        aria-hidden="true">
+
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title fw-bold" id="modalDetalleVentaLabel">
+
+                        <i class="bi bi-eye text-primary me-2"></i>
+
+                        Detalle de venta
+
+                    </h5>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <!-- Cabecera -->
+
+                    <div id="contenidoCabeceraVenta" class="mb-4"></div>
+
+                    <!-- Detalle -->
+
+                    <div class="table-responsive border rounded">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+
+                                    <th>Producto</th>
+
+                                    <th>Variante</th>
+
+                                    <th>Unidad</th>
+
+                                    <th>Cantidad</th>
+
+                                    <th>Precio unitario</th>
+
+                                    <th>Subtotal</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="tablaDetalleVentaConsulta"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-outline-primary" id="btnVerPdfVenta">
+
+                        <i class="bi bi-file-earmark-pdf me-2"></i>
+
+                        Ver comprobante
+
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         MODAL DE CARGA
+    ========================================================== -->
+
+    <div class="modal fade" id="modalCarga" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+        data-bs-keyboard="false">
+
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-body text-center p-4">
+
+                    <div class="spinner-border text-primary mb-3" role="status">
+
+                        <span class="visually-hidden">
+                            Cargando...
+                        </span>
+
+                    </div>
+
+                    <p class="mb-0 fw-semibold" id="textoCarga">
+                        Procesando...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         TOAST
+    ========================================================== -->
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+
+        <div id="toastMensaje" class="toast align-items-center text-bg-success border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
+
+            <div class="d-flex">
+
+                <div class="toast-body" id="textoToast"></div>
+
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Cerrar"></button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         SCRIPTS
+    ========================================================== -->
+
+    <script src="../js/config.js"></script>
+    <script src="../js/permisos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="../js/ventas.js"></script>
+    
+    <script src="../js/alertas-global.js"></script>
+    <script src="../js/sesion.js"></script>
+
+</body>
+
+</html>

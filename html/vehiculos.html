@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Gestión de vehículos</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/vehiculos.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/sesion.css"
+    >
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- SIDEBAR -->
+        <aside class="col-lg-2 sidebar p-4">
+
+            <div class="sidebar-contenido">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2 mb-5">
+
+                        <i class="bi bi-box-seam fs-3"></i>
+
+                        <span class="sidebar-title fs-5">
+                            Mi Inventario
+                        </span>
+
+                    </div>
+
+                    <nav>
+
+                        <a href="dashboard.html" class="menu-item">
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+
+                        <a href="productos.html" class="menu-item solo-admin">
+                            <i class="bi bi-box"></i>
+                            Productos
+                        </a>
+
+                        <a href="inventario.html" class="menu-item">
+                            <i class="bi bi-boxes"></i>
+                            Inventario
+                        </a>
+
+                        <a
+                                href="kardex.html"
+                                class="menu-item"
+                            >
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                        <a href="solicitudStock.html" class="menu-item">
+                            <i class="bi bi-clipboard-check"></i>
+                            Solicitud de stock
+                        </a>
+
+                        <a href="envios.html" class="menu-item">
+                            <i class="bi bi-truck"></i>
+                            Envíos
+                        </a>
+
+                        <a href="devoluciones.html" class="menu-item">
+                            <i class="bi bi-arrow-return-left"></i>
+                            Devoluciones
+                        </a>
+
+                        <a href="ventas.html" class="menu-item">
+                            <i class="bi bi-cart-check"></i>
+                            Ventas
+                        </a>
+
+                        <a href="usuarios.html" class="menu-item solo-admin">
+                            <i class="bi bi-people"></i>
+                            Usuarios
+                        </a>
+
+                        <a href="choferes.html" class="menu-item solo-admin">
+                            <i class="bi bi-person-badge"></i>
+                            Choferes
+                        </a>
+
+                        <a href="vehiculos.html" class="menu-item active solo-admin">
+                            <i class="bi bi-truck-front"></i>
+                            Vehículos
+                        </a>
+
+                        <a href="almacenes.html" class="menu-item solo-admin">
+                            <i class="bi bi-buildings"></i>
+                            Almacenes
+                        </a>
+
+                        <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                        <a href="chatbot.html" class="menu-item">
+
+                            <i class="bi bi-robot"></i>
+
+                            <span>
+                                Asistente IA
+                            </span>
+
+                        </a>
+
+                    </nav>
+
+                </div>
+
+                <!-- USUARIO DE SESIÓN -->
+                <div class="usuario-sesion">
+
+                    <div class="usuario-info">
+
+                        <div
+                            class="usuario-avatar"
+                            id="usuarioAvatar"
+                        >
+                            U
+                        </div>
+
+                        <div class="usuario-datos">
+
+                            <strong id="nombreUsuarioSesion">
+                                Usuario
+                            </strong>
+
+                            <small id="rolUsuarioSesion">
+                                Sin rol
+                            </small>
+
+                            <span id="usernameSesion">
+                                @usuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-salir"
+                        onclick="cerrarSesion()"
+                    >
+                        <i class="bi bi-box-arrow-right"></i>
+                        Cerrar sesión
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="col-lg-10 px-0">
+
+            <header class="page-header px-4 py-3">
+
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-center gap-3"
+                >
+
+                    <div>
+
+                        <h4 class="fw-bold mb-1">
+                            Gestión de vehículos
+                        </h4>
+
+                        <small class="text-muted">
+                            Registra vehículos y administra sus datos y estado.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="abrirModalNuevoVehiculo()"
+                    >
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nuevo vehículo
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="p-4">
+
+                <!-- RESUMEN -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+
+                        <div class="card resumen-card">
+
+                            <div
+                                class="card-body d-flex align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="resumen-icono bg-primary-subtle text-primary"
+                                >
+                                    <i class="bi bi-truck-front"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Total vehículos
+                                    </small>
+
+                                    <h4
+                                        id="totalVehiculos"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="card resumen-card">
+
+                            <div
+                                class="card-body d-flex align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="resumen-icono bg-success-subtle text-success"
+                                >
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Activos
+                                    </small>
+
+                                    <h4
+                                        id="totalActivos"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <div class="card resumen-card">
+
+                            <div
+                                class="card-body d-flex align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="resumen-icono bg-secondary-subtle text-secondary"
+                                >
+                                    <i class="bi bi-x-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Inactivos
+                                    </small>
+
+                                    <h4
+                                        id="totalInactivos"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- FILTROS -->
+                <div class="card mb-4">
+
+                    <div class="card-body">
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-lg-7">
+
+                                <label
+                                    for="buscarVehiculo"
+                                    class="form-label"
+                                >
+                                    Buscar vehículo
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        id="buscarVehiculo"
+                                        class="form-control"
+                                        placeholder="Buscar por placa, marca o modelo..."
+                                        autocomplete="off"
+                                    >
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-lg-3">
+
+                                <label
+                                    for="filtroEstado"
+                                    class="form-label"
+                                >
+                                    Estado
+                                </label>
+
+                                <select
+                                    id="filtroEstado"
+                                    class="form-select"
+                                >
+                                    <option
+                                        value=""
+                                        selected
+                                    >
+                                        Todos
+                                    </option>
+
+                                    <option value="true">
+                                        Activo
+                                    </option>
+
+                                    <option value="false">
+                                        Inactivo
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary w-100"
+                                    onclick="limpiarFiltrosVehiculos()"
+                                >
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                    Limpiar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TABLA -->
+                <div class="card">
+
+                    <div
+                        class="card-header bg-white border-0 px-4 pt-4"
+                    >
+
+                        <h5 class="fw-bold mb-1">
+                            Vehículos registrados
+                        </h5>
+
+                        <small class="text-muted">
+                            Consulta y administra los vehículos del sistema.
+                        </small>
+
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <div class="table-responsive">
+
+                            <table
+                                class="table table-hover align-middle"
+                            >
+
+                                <thead>
+
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Placa</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Estado</th>
+
+                                    <th class="text-center">
+                                        Acciones
+                                    </th>
+                                </tr>
+
+                                </thead>
+
+                                <tbody id="tablaVehiculos"></tbody>
+
+                            </table>
+
+                        </div>
+
+                        <!-- SIN VEHÍCULOS -->
+                        <div
+                            id="sinVehiculos"
+                            class="text-center py-5 d-none"
+                        >
+
+                            <i class="bi bi-truck-front fs-1 text-muted"></i>
+
+                            <h5 class="mt-3">
+                                No se encontraron vehículos
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                Registra un vehículo o modifica los filtros.
+                            </p>
+
+                        </div>
+
+                        <!-- INFORMACIÓN Y PAGINACIÓN -->
+                        <div
+                            class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4"
+                        >
+
+                            <div class="text-muted">
+
+                                Mostrando
+
+                                <strong id="registroInicioVehiculos">
+                                    0
+                                </strong>
+
+                                -
+
+                                <strong id="registroFinVehiculos">
+                                    0
+                                </strong>
+
+                                de
+
+                                <strong id="totalRegistrosVehiculos">
+                                    0
+                                </strong>
+
+                                vehículos
+
+                            </div>
+
+                            <div
+                                class="d-flex flex-wrap align-items-center gap-3"
+                            >
+
+                                <div
+                                    class="d-flex align-items-center gap-2"
+                                >
+
+                                    <label
+                                        for="tamanioPaginaVehiculos"
+                                        class="form-label mb-0 text-muted"
+                                    >
+                                        Mostrar:
+                                    </label>
+
+                                    <select
+                                        id="tamanioPaginaVehiculos"
+                                        class="form-select form-select-sm"
+                                        style="width: 85px;"
+                                    >
+
+                                        <option
+                                            value="5"
+                                            selected
+                                        >
+                                            5
+                                        </option>
+
+                                        <option value="10">
+                                            10
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <nav
+                                    aria-label="Paginación de vehículos"
+                                >
+
+                                    <ul
+                                        class="pagination pagination-sm mb-0"
+                                        id="paginacionVehiculos"
+                                    ></ul>
+
+                                </nav>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+<!-- MODAL CREAR O EDITAR -->
+<div
+    class="modal fade"
+    id="modalVehiculo"
+    tabindex="-1"
+    aria-labelledby="modalVehiculoLabel"
+    aria-hidden="true"
+>
+    <div
+        class="modal-dialog modal-lg modal-dialog-centered"
+    >
+
+        <div class="modal-content border-0 rounded-4">
+
+            <form
+                id="formVehiculo"
+                onsubmit="guardarVehiculo(event)"
+            >
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <h5
+                            class="modal-title fw-bold"
+                            id="modalVehiculoLabel"
+                        >
+                            <i class="bi bi-truck-front text-primary me-2"></i>
+                            Registrar vehículo
+                        </h5>
+
+                        <small class="text-muted">
+                            Completa los datos requeridos.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"
+                    ></button>
+
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <input
+                        type="hidden"
+                        id="vehiculoId"
+                    >
+
+                    <div class="row g-3">
+
+                        <div class="col-md-12">
+
+                            <label
+                                for="placa"
+                                class="form-label required"
+                            >
+                                Placa
+                            </label>
+
+                            <input
+                                type="text"
+                                id="placa"
+                                class="form-control text-uppercase"
+                                placeholder="Ejemplo: ABC-123"
+                                maxlength="10"
+                                autocomplete="off"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                for="marca"
+                                class="form-label required"
+                            >
+                                Marca
+                            </label>
+
+                            <input
+                                type="text"
+                                id="marca"
+                                class="form-control"
+                                placeholder="Ejemplo: Toyota"
+                                maxlength="100"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label
+                                for="modelo"
+                                class="form-label required"
+                            >
+                                Modelo
+                            </label>
+
+                            <input
+                                type="text"
+                                id="modelo"
+                                class="form-control"
+                                placeholder="Ejemplo: Hilux"
+                                maxlength="100"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                        id="btnGuardarVehiculo"
+                    >
+                        <i class="bi bi-floppy me-2"></i>
+                        Guardar vehículo
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- TOAST -->
+<div
+    class="toast-container position-fixed bottom-0 end-0 p-3"
+>
+
+    <div
+        id="toastMensaje"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+
+        <div class="d-flex">
+
+            <div
+                class="toast-body"
+                id="textoToast"
+            ></div>
+
+            <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast"
+                aria-label="Cerrar"
+            ></button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<script src="../js/config.js"></script>
+<script src="../js/permisos.js"></script>
+<script src="../js/vehiculos.js"></script>
+<script src="../js/alertas-global.js"></script>
+<script src="../js/sesion.js"></script>
+
+</body>
+
+</html>

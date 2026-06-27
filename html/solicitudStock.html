@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Solicitudes de stock</title>
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS -->
+    <link
+        rel="stylesheet"
+        href="../css/solicitudStock.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/sesion.css"
+    >
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+        <aside class="col-lg-2 sidebar p-4">
+
+            <div class="sidebar-contenido">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2 mb-5">
+
+                        <i class="bi bi-box-seam fs-3"></i>
+
+                        <span class="sidebar-title fs-5">
+                            Mi Inventario
+                        </span>
+
+                    </div>
+
+                    <nav>
+
+                        <a
+                            href="dashboard.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+
+                        <a
+                            href="productos.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-box"></i>
+                            Productos
+                        </a>
+
+                        <a
+                            href="inventario.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-boxes"></i>
+                            Inventario
+                        </a>
+
+                        <a
+                                href="kardex.html"
+                                class="menu-item"
+                            >
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                        <a
+                            href="solicitudStock.html"
+                            class="menu-item active"
+                        >
+                            <i class="bi bi-clipboard-check"></i>
+                            Solicitud de stock
+                        </a>
+
+                        <a
+                            href="envios.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-truck"></i>
+                            Envíos
+                        </a>
+
+                        <a
+                            href="devoluciones.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-arrow-return-left"></i>
+                            Devoluciones
+                        </a>
+
+                        <a
+                            href="ventas.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                            Ventas
+                        </a>
+
+                        <a
+                            href="usuarios.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-people"></i>
+                            Usuarios
+                        </a>
+
+                        <a
+                            href="choferes.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-person-badge"></i>
+                            Choferes
+                        </a>
+
+                        <a
+                            href="vehiculos.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-truck-front"></i>
+                            Vehículos
+                        </a>
+
+                        <a
+                            href="almacenes.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-buildings"></i>
+                            Almacenes
+                        </a>
+
+                        <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                        <a
+                            href="chatbot.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-robot"></i>
+                            Asistente IA
+                        </a>
+
+                    </nav>
+
+                </div>
+
+                <!-- Usuario de sesión -->
+                <div class="usuario-sesion">
+
+                    <div class="usuario-info">
+
+                        <div
+                            class="usuario-avatar"
+                            id="usuarioAvatar"
+                        >
+                            U
+                        </div>
+
+                        <div class="usuario-datos">
+
+                            <strong id="nombreUsuarioSesion">
+                                Usuario
+                            </strong>
+
+                            <small id="rolUsuarioSesion">
+                                Sin rol
+                            </small>
+
+                            <span id="usernameSesion">
+                                @usuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-salir"
+                        onclick="cerrarSesion()"
+                    >
+                        <i class="bi bi-box-arrow-right"></i>
+                        Cerrar sesión
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- =====================================================
+             CONTENIDO PRINCIPAL
+        ====================================================== -->
+        <main class="col-lg-10 px-0">
+
+            <header class="page-header px-4 py-3">
+
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-center gap-3"
+                >
+
+                    <div>
+
+                        <h4 class="fw-bold mb-1">
+                            Solicitudes de stock
+                        </h4>
+
+                        <small class="text-muted">
+                            Solicita productos disponibles desde otro almacén.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="abrirModalNuevaSolicitud()"
+                    >
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nueva solicitud
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="p-4">
+
+                <!-- =================================================
+                     RESUMEN
+                ================================================== -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-3">
+
+                        <div class="card resumen-card">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-primary-subtle text-primary">
+                                    <i class="bi bi-clipboard-data"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Total solicitudes
+                                    </small>
+
+                                    <h4
+                                        class="fw-bold mb-0"
+                                        id="totalSolicitudes"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="card resumen-card">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-warning-subtle text-warning">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Pendientes
+                                    </small>
+
+                                    <h4
+                                        class="fw-bold mb-0"
+                                        id="totalPendientes"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="card resumen-card">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-success-subtle text-success">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Procesadas
+                                    </small>
+
+                                    <h4
+                                        class="fw-bold mb-0"
+                                        id="totalAprobadas"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="card resumen-card">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-danger-subtle text-danger">
+                                    <i class="bi bi-x-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Anuladas
+                                    </small>
+
+                                    <h4
+                                        class="fw-bold mb-0"
+                                        id="totalRechazadas"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =================================================
+                     FILTROS
+                ================================================== -->
+                <div class="card mb-4">
+
+                    <div class="card-body">
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-lg-6">
+
+                                <label
+                                    for="buscarSolicitud"
+                                    class="form-label"
+                                >
+                                    Buscar solicitud
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        id="buscarSolicitud"
+                                        class="form-control"
+                                        placeholder="Buscar por número, almacén o estado..."
+                                    >
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-lg-3">
+
+                                <label
+                                    for="filtroEstado"
+                                    class="form-label"
+                                >
+                                    Estado
+                                </label>
+
+                                <select
+                                    id="filtroEstado"
+                                    class="form-select"
+                                >
+                                    <option value="todos">
+                                        Todos
+                                    </option>
+
+                                    <option value="PENDIENTE">
+                                        Pendiente
+                                    </option>
+
+                                    <option value="PROCESADO">
+                                        Procesado
+                                    </option>
+
+                                    <option value="ANULADO">
+                                        Anulado
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            <div class="col-lg-3">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary w-100"
+                                    onclick="limpiarFiltros()"
+                                >
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                                    Limpiar filtros
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =================================================
+                     TABLA DE SOLICITUDES
+                ================================================== -->
+                <div class="card">
+
+                    <div class="card-header bg-white border-0 px-4 pt-4">
+
+                        <h5 class="fw-bold mb-1">
+                            Solicitudes registradas
+                        </h5>
+
+                        <small class="text-muted">
+                            Consulta las solicitudes relacionadas con tu almacén.
+                        </small>
+
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle">
+
+                                <thead>
+
+                                <tr>
+
+                                    <th>
+                                        N.º solicitud
+                                    </th>
+
+                                    <th>
+                                        Fecha
+                                    </th>
+
+                                    <th>
+                                        Almacén origen
+                                    </th>
+
+                                    <th>
+                                        Almacén solicitante
+                                    </th>
+
+                                    <th>
+                                        Estado
+                                    </th>
+
+                                    <th class="text-center">
+                                        Acciones
+                                    </th>
+
+                                </tr>
+
+                                </thead>
+
+                                <tbody id="tablaSolicitudes">
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="text-center py-4 text-muted"
+                                    >
+                                        No hay solicitudes cargadas.
+                                    </td>
+
+                                </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div
+                            id="sinSolicitudes"
+                            class="text-center py-5 d-none"
+                        >
+
+                            <i class="bi bi-inbox fs-1 text-muted"></i>
+
+                            <h5 class="mt-3">
+                                No se encontraron solicitudes
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                Registra una nueva solicitud o cambia los filtros.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL NUEVA SOLICITUD
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalSolicitud"
+    tabindex="-1"
+    aria-labelledby="modalSolicitudLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h5
+                        class="modal-title fw-bold"
+                        id="modalSolicitudLabel"
+                    >
+                        <i class="bi bi-clipboard-plus text-primary me-2"></i>
+                        Registrar solicitud de stock
+                    </h5>
+
+                    <small class="text-muted">
+                        Selecciona el almacén de origen y los productos que necesitas.
+                    </small>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body p-4">
+
+                <!-- Datos generales -->
+                <div class="card border shadow-none mb-4">
+
+                    <div class="card-body">
+
+                        <h6 class="fw-bold mb-3">
+                            Datos generales de la solicitud
+                        </h6>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="almacenOrigen"
+                                    class="form-label required"
+                                >
+                                    Almacén de origen
+                                </label>
+
+                                <select
+                                    id="almacenOrigen"
+                                    class="form-select"
+                                    onchange="cargarInventarioOrigen()"
+                                >
+                                    <option value="">
+                                        Seleccionar almacén de origen
+                                    </option>
+                                </select>
+
+                                <small class="text-muted">
+                                    Es el almacén que entregará los productos.
+                                </small>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="almacenDestinoNombre"
+                                    class="form-label required"
+                                >
+                                    Almacén solicitante
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="almacenDestinoNombre"
+                                    class="form-control"
+                                    placeholder="Almacén asignado al usuario"
+                                    readonly
+                                >
+
+                                <input
+                                    type="hidden"
+                                    id="almacenDestino"
+                                    value=""
+                                >
+
+                                <small class="text-muted">
+                                    Se obtiene automáticamente de la sesión.
+                                </small>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <label
+                                    for="observacion"
+                                    class="form-label"
+                                >
+                                    Observación
+                                </label>
+
+                                <textarea
+                                    id="observacion"
+                                    class="form-control"
+                                    rows="3"
+                                    maxlength="500"
+                                    placeholder="Ejemplo: Reposición de productos con bajo stock"
+                                ></textarea>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Agregar productos -->
+                <div class="card border shadow-none mb-4">
+
+                    <div class="card-body">
+
+                        <h6 class="fw-bold mb-3">
+                            Agregar productos a la solicitud
+                        </h6>
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-lg-6">
+
+                                <label
+                                    for="productoSeleccionado"
+                                    class="form-label required"
+                                >
+                                    Producto, variante y unidad
+                                </label>
+
+                                <select
+                                    id="productoSeleccionado"
+                                    class="form-select"
+                                    disabled
+                                    onchange="actualizarStockSeleccionado()"
+                                >
+                                    <option value="">
+                                        Primero selecciona el almacén de origen
+                                    </option>
+                                </select>
+
+                                <small class="text-muted">
+                                    Selecciona el producto que deseas solicitar.
+                                </small>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <label
+                                    for="stockDisponibleSeleccionado"
+                                    class="form-label"
+                                >
+                                    Stock disponible
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="stockDisponibleSeleccionado"
+                                    class="form-control"
+                                    value="0"
+                                    readonly
+                                >
+
+                                <small
+                                    id="textoTopeStock"
+                                    class="text-muted"
+                                >
+                                    Cantidad máxima: 0
+                                </small>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <label
+                                    for="cantidadSolicitada"
+                                    class="form-label required"
+                                >
+                                    Cantidad
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="cantidadSolicitada"
+                                    class="form-control"
+                                    min="1"
+                                    max="1"
+                                    step="1"
+                                    value="1"
+                                    disabled
+                                    oninput="validarCantidadDisponible(this)"
+                                >
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary w-100"
+                                    onclick="agregarProductoSolicitud()"
+                                >
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Agregar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Detalle de productos -->
+                <div class="table-responsive border rounded">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Código
+                            </th>
+
+                            <th>
+                                Producto
+                            </th>
+
+                            <th>
+                                Variante
+                            </th>
+
+                            <th>
+                                Unidad
+                            </th>
+
+                            <th class="text-center">
+                                Stock origen
+                            </th>
+
+                            <th class="text-center">
+                                Cantidad solicitada
+                            </th>
+
+                            <th class="text-center">
+                                Acción
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="tablaDetalleSolicitud">
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="text-center py-4 text-muted"
+                            >
+                                Todavía no has agregado productos.
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                        <tfoot>
+
+                        <tr class="table-light">
+
+                            <td
+                                colspan="5"
+                                class="text-end fw-bold"
+                            >
+                                Total de unidades:
+                            </td>
+
+                            <td
+                                class="fw-bold text-center"
+                                id="totalUnidadesSolicitud"
+                            >
+                                0
+                            </td>
+
+                            <td></td>
+
+                        </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="btnRegistrarSolicitud"
+                    class="btn btn-success"
+                    onclick="registrarSolicitud()"
+                >
+                    <i class="bi bi-floppy me-2"></i>
+                    Registrar solicitud
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL APROBAR SOLICITUD Y GENERAR ENVÍO
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalAprobarSolicitud"
+    tabindex="-1"
+    aria-labelledby="modalAprobarSolicitudLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h5
+                        class="modal-title fw-bold"
+                        id="modalAprobarSolicitudLabel"
+                    >
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Aprobar solicitud
+                    </h5>
+
+                    <small class="text-muted">
+                        Selecciona el chofer y el vehículo que realizarán el envío.
+                    </small>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body p-4">
+
+                <input
+                    type="hidden"
+                    id="idSolicitudAprobar"
+                    value=""
+                >
+
+                <div class="alert alert-success d-flex align-items-center gap-3">
+
+                    <i class="bi bi-info-circle fs-4"></i>
+
+                    <div>
+
+                        <div>
+                            Se aprobará la solicitud:
+                        </div>
+
+                        <strong id="numeroSolicitudAprobar">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-light border">
+
+                    <i class="bi bi-truck me-2 text-primary"></i>
+
+                    Al aprobar la solicitud se generará automáticamente una
+                    guía de envío y la solicitud cambiará al estado
+                    <strong>PROCESADO</strong>.
+
+                </div>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label
+                            for="choferEnvio"
+                            class="form-label required"
+                        >
+                            Chofer
+                        </label>
+
+                        <select
+                            id="choferEnvio"
+                            class="form-select"
+                        >
+                            <option value="">
+                                Seleccionar chofer
+                            </option>
+                        </select>
+
+                        <div
+                            class="invalid-feedback"
+                            id="errorChoferEnvio"
+                        >
+                            Debe seleccionar un chofer.
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label
+                            for="vehiculoEnvio"
+                            class="form-label required"
+                        >
+                            Vehículo
+                        </label>
+
+                        <select
+                            id="vehiculoEnvio"
+                            class="form-select"
+                        >
+                            <option value="">
+                                Seleccionar vehículo
+                            </option>
+                        </select>
+
+                        <div
+                            class="invalid-feedback"
+                            id="errorVehiculoEnvio"
+                        >
+                            Debe seleccionar un vehículo.
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div
+                    id="mensajeCargaTransporte"
+                    class="text-center text-muted py-4 d-none"
+                >
+                    <div
+                        class="spinner-border spinner-border-sm me-2"
+                        role="status"
+                    ></div>
+
+                    Cargando choferes y vehículos...
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="btnConfirmarAprobacion"
+                    class="btn btn-success"
+                    onclick="confirmarAprobacionSolicitud()"
+                >
+                    <i class="bi bi-check-circle me-2"></i>
+                    Aprobar y generar envío
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL ANULAR SOLICITUD
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalRechazarSolicitud"
+    tabindex="-1"
+    aria-labelledby="modalRechazarSolicitudLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title fw-bold"
+                    id="modalRechazarSolicitudLabel"
+                >
+                    <i class="bi bi-x-circle text-danger me-2"></i>
+                    Anular solicitud
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <input
+                    type="hidden"
+                    id="idSolicitudRechazo"
+                    value=""
+                >
+
+                <div class="alert alert-warning">
+
+                    Se anulará la solicitud:
+
+                    <strong id="numeroSolicitudRechazo">
+                        -
+                    </strong>
+
+                </div>
+
+                <label
+                    for="motivoRechazo"
+                    class="form-label required"
+                >
+                    Motivo de anulación
+                </label>
+
+                <textarea
+                    id="motivoRechazo"
+                    class="form-control"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Ingrese el motivo de anulación"
+                ></textarea>
+
+                <div
+                    class="invalid-feedback"
+                    id="errorMotivoRechazo"
+                >
+                    Debe ingresar el motivo de anulación.
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="btnConfirmarRechazo"
+                    class="btn btn-danger"
+                    onclick="confirmarRechazoSolicitud()"
+                >
+                    <i class="bi bi-x-circle me-2"></i>
+                    Anular solicitud
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL PREVIEW PDF
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalPreviewPdf"
+    tabindex="-1"
+    aria-labelledby="modalPreviewPdfLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title fw-bold"
+                    id="modalPreviewPdfLabel"
+                >
+                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                    Vista previa de la solicitud
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body p-0">
+
+                <iframe
+                    id="iframeSolicitudPdf"
+                    title="Vista previa del PDF de la solicitud"
+                    style="
+                        width: 100%;
+                        height: 75vh;
+                        border: 0;
+                    "
+                ></iframe>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+
+    <div
+        id="toastMensaje"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+
+        <div class="d-flex">
+
+            <div
+                class="toast-body"
+                id="textoToast"
+            >
+                Operación realizada correctamente.
+            </div>
+
+            <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast"
+                aria-label="Cerrar"
+            ></button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Bootstrap -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<!-- Configuración -->
+<script src="../js/config.js"></script>
+<script src="../js/permisos.js"></script>
+<!-- JavaScript de solicitudes -->
+<script src="../js/solicitudStock.js"></script>
+<script src="../js/alertas-global.js"></script>
+
+<!-- Datos de sesión -->
+<script src="../js/sesion.js"></script>
+
+</body>
+
+</html>

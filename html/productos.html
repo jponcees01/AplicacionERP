@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Gestión de productos</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/productos.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/sesion.css"
+    >
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+        <aside class="col-lg-2 sidebar p-4">
+
+            <div class="sidebar-contenido">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2 mb-5">
+
+                        <i class="bi bi-box-seam fs-3"></i>
+
+                        <span class="sidebar-title fs-5">
+                            Mi Inventario
+                        </span>
+
+                    </div>
+
+                    <nav>
+
+                        <a
+                            href="dashboard.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+
+                        <a
+                            href="productos.html"
+                            class="menu-item active solo-admin"
+                        >
+                            <i class="bi bi-box"></i>
+                            Productos
+                        </a>
+
+                        <a
+                            href="inventario.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-boxes"></i>
+                            Inventario
+                        </a>
+
+                        <a
+                                href="kardex.html"
+                                class="menu-item"
+                            >
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                        <a
+                            href="solicitudStock.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-clipboard-check"></i>
+                            Solicitud de stock
+                        </a>
+
+                        <a
+                            href="envios.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-truck"></i>
+                            Envíos
+                        </a>
+
+                        <a
+                            href="devoluciones.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-arrow-return-left"></i>
+                            Devoluciones
+                        </a>
+
+                        <a
+                            href="ventas.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                            Ventas
+                        </a>
+
+                        <a
+                            href="usuarios.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-people"></i>
+                            Usuarios
+                        </a>
+
+                        <a
+                            href="choferes.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-person-badge"></i>
+                            Choferes
+                        </a>
+
+                        <a
+                            href="vehiculos.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-truck-front"></i>
+                            Vehículos
+                        </a>
+
+                        <a
+                            href="almacenes.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-buildings"></i>
+                            Almacenes
+                        </a>
+
+                        <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                        <a
+                            href="chatbot.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-robot"></i>
+
+                            <span>
+                                Asistente IA
+                            </span>
+                        </a>
+
+                    </nav>
+
+                </div>
+
+                <!-- Usuario de sesión -->
+                <div class="usuario-sesion">
+
+                    <div class="usuario-info">
+
+                        <div
+                            class="usuario-avatar"
+                            id="usuarioAvatar"
+                        >
+                            U
+                        </div>
+
+                        <div class="usuario-datos">
+
+                            <strong id="nombreUsuarioSesion">
+                                Usuario
+                            </strong>
+
+                            <small id="rolUsuarioSesion">
+                                Sin rol
+                            </small>
+
+                            <span id="usernameSesion">
+                                @usuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-salir"
+                        onclick="cerrarSesion()"
+                    >
+                        <i class="bi bi-box-arrow-right"></i>
+                        Cerrar sesión
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- =====================================================
+             CONTENIDO PRINCIPAL
+        ====================================================== -->
+        <main class="col-lg-10 px-0">
+
+            <header class="page-header px-4 py-3">
+
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-center gap-3"
+                >
+
+                    <div>
+
+                        <h4 class="mb-1 fw-bold">
+                            Gestión de productos
+                        </h4>
+
+                        <small class="text-muted">
+                            Registra productos, categorías, marcas, unidades y variantes.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalExcel"
+                    >
+                        <i class="bi bi-file-earmark-excel me-2"></i>
+                        Importar Excel
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="p-4">
+
+                <!-- =====================================================
+                     CATÁLOGOS
+                ====================================================== -->
+                <div class="row g-4 mb-4">
+
+                    <!-- Categoría -->
+                    <div class="col-lg-6 col-xl-3">
+
+                        <div class="card h-100">
+
+                            <div class="card-body">
+
+                                <div class="d-flex align-items-center gap-3 mb-3">
+
+                                    <div class="section-icon">
+                                        <i class="bi bi-tags"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <h5 class="card-title mb-0">
+                                            Categorías
+                                        </h5>
+
+                                        <small class="text-muted">
+                                            Crear una categoría
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <label
+                                    for="nuevaCategoria"
+                                    class="form-label"
+                                >
+                                    Nombre
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="nuevaCategoria"
+                                    class="form-control mb-3"
+                                    placeholder="Ejemplo: Laptops"
+                                    maxlength="100"
+                                    autocomplete="off"
+                                >
+
+                                <button
+                                    type="button"
+                                    id="btnAgregarCategoria"
+                                    class="btn btn-primary w-100"
+                                    onclick="agregarCategoria()"
+                                >
+                                    <i class="bi bi-plus-lg me-2"></i>
+                                    Crear categoría
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Marca -->
+                    <div class="col-lg-6 col-xl-3">
+
+                        <div class="card h-100">
+
+                            <div class="card-body">
+
+                                <div class="d-flex align-items-center gap-3 mb-3">
+
+                                    <div class="section-icon">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <h5 class="card-title mb-0">
+                                            Marcas
+                                        </h5>
+
+                                        <small class="text-muted">
+                                            Crear una marca
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <label
+                                    for="nuevaMarca"
+                                    class="form-label"
+                                >
+                                    Nombre
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="nuevaMarca"
+                                    class="form-control mb-3"
+                                    placeholder="Ejemplo: Lenovo"
+                                    maxlength="100"
+                                    autocomplete="off"
+                                >
+
+                                <button
+                                    type="button"
+                                    id="btnAgregarMarca"
+                                    class="btn btn-primary w-100"
+                                    onclick="agregarMarca()"
+                                >
+                                    <i class="bi bi-plus-lg me-2"></i>
+                                    Crear marca
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Unidad -->
+                    <div class="col-lg-6 col-xl-3">
+
+                        <div class="card h-100">
+
+                            <div class="card-body">
+
+                                <div class="d-flex align-items-center gap-3 mb-3">
+
+                                    <div class="section-icon">
+                                        <i class="bi bi-rulers"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <h5 class="card-title mb-0">
+                                            Unidades
+                                        </h5>
+
+                                        <small class="text-muted">
+                                            Crear unidad de medida
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <label
+                                    for="nuevaUnidad"
+                                    class="form-label"
+                                >
+                                    Nombre
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="nuevaUnidad"
+                                    class="form-control mb-3"
+                                    placeholder="Ejemplo: Unidad"
+                                    maxlength="100"
+                                    autocomplete="off"
+                                >
+
+                                <label
+                                    for="abreviaturaUnidad"
+                                    class="form-label"
+                                >
+                                    Abreviatura
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="abreviaturaUnidad"
+                                    class="form-control text-uppercase mb-3"
+                                    placeholder="Ejemplo: UND"
+                                    maxlength="20"
+                                    autocomplete="off"
+                                >
+
+                                <button
+                                    type="button"
+                                    id="btnAgregarUnidad"
+                                    class="btn btn-primary w-100"
+                                    onclick="agregarUnidad()"
+                                >
+                                    <i class="bi bi-plus-lg me-2"></i>
+                                    Crear unidad
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Variante -->
+                    <div class="col-lg-6 col-xl-3">
+
+                        <div class="card h-100">
+
+                            <div class="card-body">
+
+                                <div class="d-flex align-items-center gap-3 mb-3">
+
+                                    <div class="section-icon">
+                                        <i class="bi bi-diagram-3"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <h5 class="card-title mb-0">
+                                            Variantes
+                                        </h5>
+
+                                        <small class="text-muted">
+                                            Crear variante de producto
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <label
+                                    for="idProductoVariante"
+                                    class="form-label"
+                                >
+                                    Producto
+                                </label>
+
+                                <select
+                                    id="idProductoVariante"
+                                    class="form-select mb-3"
+                                >
+                                    <option value="">
+                                        Seleccionar producto
+                                    </option>
+                                </select>
+
+                                <label
+                                    for="descripcionVariante"
+                                    class="form-label"
+                                >
+                                    Descripción
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="descripcionVariante"
+                                    class="form-control mb-3"
+                                    placeholder="Ejemplo: Negro - 16 GB RAM"
+                                    maxlength="200"
+                                    autocomplete="off"
+                                >
+
+                                <button
+                                    type="button"
+                                    id="btnAgregarVariante"
+                                    class="btn btn-primary w-100"
+                                    onclick="agregarVariante()"
+                                >
+                                    <i class="bi bi-plus-lg me-2"></i>
+                                    Crear variante
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =====================================================
+                     NUEVO PRODUCTO
+                ====================================================== -->
+                <div class="card mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+
+                            <div class="section-icon">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="card-title mb-1">
+                                    Nuevo producto
+                                </h5>
+
+                                <small class="text-muted">
+                                    Ingresa el nombre, categoría, marca e imagen del producto.
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <form
+                            id="formProducto"
+                            enctype="multipart/form-data"
+                            onsubmit="guardarProducto(event)"
+                        >
+
+                            <div class="row g-3">
+
+                                <div class="col-md-12">
+
+                                    <label
+                                        for="nombreProducto"
+                                        class="form-label required"
+                                    >
+                                        Nombre del producto
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="nombreProducto"
+                                        class="form-control"
+                                        placeholder="Ejemplo: Laptop Lenovo IdeaPad"
+                                        maxlength="150"
+                                        autocomplete="off"
+                                        required
+                                    >
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label
+                                        for="idCategoria"
+                                        class="form-label required"
+                                    >
+                                        Categoría
+                                    </label>
+
+                                    <select
+                                        id="idCategoria"
+                                        class="form-select"
+                                        required
+                                    >
+                                        <option value="">
+                                            Seleccionar categoría
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label
+                                        for="idMarca"
+                                        class="form-label required"
+                                    >
+                                        Marca
+                                    </label>
+
+                                    <select
+                                        id="idMarca"
+                                        class="form-select"
+                                        required
+                                    >
+                                        <option value="">
+                                            Seleccionar marca
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-12">
+
+                                    <label
+                                        for="imagenProducto"
+                                        class="form-label required"
+                                    >
+                                        Imagen del producto
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        id="imagenProducto"
+                                        class="form-control"
+                                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                                        onchange="mostrarVistaPreviaImagen(event)"
+                                        required
+                                    >
+
+                                    <small class="text-muted">
+                                        Formatos permitidos: JPG, JPEG, PNG y WEBP. Máximo 5 MB.
+                                    </small>
+
+                                </div>
+
+                                <div
+                                    class="col-md-12 d-none"
+                                    id="contenedorVistaPrevia"
+                                >
+
+                                    <div class="border rounded-3 p-3">
+
+                                        <p class="fw-semibold mb-2">
+                                            Vista previa
+                                        </p>
+
+                                        <img
+                                            id="vistaPreviaImagen"
+                                            src=""
+                                            alt="Vista previa del producto"
+                                            class="img-thumbnail"
+                                            style="
+                                                width: 180px;
+                                                height: 180px;
+                                                object-fit: contain;
+                                            "
+                                        >
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <hr>
+
+                                    <div class="d-flex justify-content-end gap-2">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary px-4"
+                                            onclick="limpiarFormularioProducto()"
+                                        >
+                                            <i class="bi bi-eraser me-2"></i>
+                                            Limpiar
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary px-4"
+                                            id="btnGuardarProducto"
+                                        >
+                                            <i class="bi bi-floppy me-2"></i>
+                                            Guardar producto
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+<!-- =========================================================
+     MODAL EXCEL
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalExcel"
+    tabindex="-1"
+    aria-labelledby="modalExcelLabel"
+    aria-hidden="true"
+>
+    <div
+        class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"
+    >
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h5
+                        class="modal-title fw-bold"
+                        id="modalExcelLabel"
+                    >
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                        Cargar productos desde Excel
+                    </h5>
+
+                    <small class="text-muted">
+                        Selecciona un archivo que respete el formato mostrado.
+                    </small>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body p-4">
+
+                <label
+                    for="archivoExcel"
+                    class="upload-area w-100"
+                >
+
+                    <i class="bi bi-cloud-arrow-up upload-icon"></i>
+
+                    <h5 class="mt-3">
+                        Seleccionar archivo Excel
+                    </h5>
+
+                    <p class="text-muted mb-2">
+                        Haz clic aquí para seleccionar el archivo.
+                    </p>
+
+                    <span class="badge text-bg-light border">
+                        Formatos permitidos: XLSX, XLS y CSV
+                    </span>
+
+                    <input
+                        type="file"
+                        id="archivoExcel"
+                        class="d-none"
+                        accept=".xlsx,.xls,.csv"
+                        onchange="mostrarArchivoSeleccionado()"
+                    >
+
+                </label>
+
+                <div
+                    id="archivoSeleccionado"
+                    class="alert alert-info mt-3 d-none"
+                ></div>
+
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 mb-3"
+                >
+
+                    <div>
+
+                        <h6 class="fw-bold mb-1">
+                            Formato de columnas
+                        </h6>
+
+                        <small class="text-muted">
+                            La primera fila debe contener exactamente estos encabezados.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-success"
+                        onclick="descargarPlantilla()"
+                    >
+                        <i class="bi bi-download me-2"></i>
+                        Descargar plantilla
+                    </button>
+
+                </div>
+
+                <div class="table-responsive border rounded-3">
+
+                    <table class="table table-bordered table-sm align-middle mb-0">
+
+                        <thead class="table-success">
+
+                        <tr>
+                            <th>nombre</th>
+                            <th>idCategoria</th>
+                            <th>idMarca</th>
+                            <th>imagen</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        <tr>
+                            <td>Laptop Lenovo IdeaPad</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>laptop-lenovo.jpg</td>
+                        </tr>
+
+                        <tr>
+                            <td>Mouse inalámbrico</td>
+                            <td>3</td>
+                            <td>4</td>
+                            <td>mouse-inalambrico.png</td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <h6 class="fw-bold mb-3">
+                        Descripción de las columnas
+                    </h6>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-sm table-hover align-middle">
+
+                            <thead>
+
+                            <tr>
+                                <th>Columna</th>
+                                <th>Tipo</th>
+                                <th>Obligatorio</th>
+                                <th>Descripción</th>
+                            </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                            <tr>
+                                <td>
+                                    <code>nombre</code>
+                                </td>
+
+                                <td>Texto</td>
+
+                                <td>
+                                    <span class="badge bg-success">
+                                        Sí
+                                    </span>
+                                </td>
+
+                                <td>
+                                    Nombre completo del producto.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <code>idCategoria</code>
+                                </td>
+
+                                <td>Número entero</td>
+
+                                <td>
+                                    <span class="badge bg-success">
+                                        Sí
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ID de una categoría registrada.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <code>idMarca</code>
+                                </td>
+
+                                <td>Número entero</td>
+
+                                <td>
+                                    <span class="badge bg-success">
+                                        Sí
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ID de una marca registrada.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <code>imagen</code>
+                                </td>
+
+                                <td>Texto</td>
+
+                                <td>
+                                    <span class="badge bg-warning text-dark">
+                                        Según endpoint
+                                    </span>
+                                </td>
+
+                                <td>
+                                    Nombre del archivo de imagen relacionado.
+                                </td>
+                            </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-warning mt-4 mb-0">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    No combines celdas, no cambies los nombres de las columnas
+                    y no agregues filas vacías antes de los encabezados.
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-success"
+                    onclick="procesarExcel()"
+                >
+                    <i class="bi bi-cloud-upload me-2"></i>
+                    Cargar archivo
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+<div
+    class="toast-container position-fixed bottom-0 end-0 p-3"
+>
+
+    <div
+        id="toastMensaje"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+
+        <div class="d-flex">
+
+            <div
+                class="toast-body"
+                id="textoToast"
+            ></div>
+
+            <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast"
+                aria-label="Cerrar"
+            ></button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<script src="../js/config.js"></script>
+<script src="../js/permisos.js"></script>
+<script src="../js/productos.js"></script>
+<script src="../js/alertas-global.js"></script>
+<script src="../js/sesion.js"></script>
+
+</body>
+
+</html>

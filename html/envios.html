@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Gestión de envíos</title>
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Estilos -->
+    <link
+        rel="stylesheet"
+        href="../css/envios.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/sesion.css"
+    >
+    <style>
+        .solo-admin {
+            display: none !important;
+        }
+
+        body.usuario-admin .solo-admin {
+            display: flex !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- =====================================================
+             MENÚ LATERAL
+        ====================================================== -->
+        <aside class="col-lg-2 sidebar p-4">
+
+            <div class="sidebar-contenido">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2 mb-5">
+
+                        <i class="bi bi-box-seam fs-3"></i>
+
+                        <span class="sidebar-title fs-5">
+                            Mi Inventario
+                        </span>
+
+                    </div>
+
+                    <nav>
+
+                        <a
+                            href="dashboard.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+
+                        <a
+                            href="productos.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-box"></i>
+                            Productos
+                        </a>
+
+                        <a
+                            href="inventario.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-boxes"></i>
+                            Inventario
+                        </a>
+
+                        <a
+                                href="kardex.html"
+                                class="menu-item"
+                            >
+                                <i class="bi bi-journal-text"></i>
+                                Kardex
+                            </a>
+
+                        <a
+                            href="solicitudStock.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-clipboard-check"></i>
+                            Solicitud de stock
+                        </a>
+
+                        <a
+                            href="envios.html"
+                            class="menu-item active"
+                        >
+                            <i class="bi bi-truck"></i>
+                            Envíos
+                        </a>
+
+                        <a
+                            href="devoluciones.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-arrow-return-left"></i>
+                            Devoluciones
+                        </a>
+
+                        <a
+                            href="ventas.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                            Ventas
+                        </a>
+
+                        <a
+                            href="usuarios.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-people"></i>
+                            Usuarios
+                        </a>
+
+                        <a
+                            href="choferes.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-person-badge"></i>
+                            Choferes
+                        </a>
+
+                        <a
+                            href="vehiculos.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-truck-front"></i>
+                            Vehículos
+                        </a>
+
+                        <a
+                            href="almacenes.html"
+                            class="menu-item solo-admin"
+                        >
+                            <i class="bi bi-buildings"></i>
+                            Almacenes
+                        </a>
+
+                        <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                                title="No tienes alertas nuevas">
+                                <i class="bi bi-bell"></i>
+
+                                <span>
+                                    Alertas
+                                </span>
+
+                                <span class="contador-alertas-sidebar d-none" id="contadorAlertasSidebar">
+                                    0
+                                </span>
+                            </a>
+
+                        <a
+                            href="chatbot.html"
+                            class="menu-item"
+                        >
+                            <i class="bi bi-robot"></i>
+                            Asistente IA
+                        </a>
+
+                    </nav>
+
+                </div>
+
+                <!-- Usuario de sesión -->
+                <div class="usuario-sesion">
+
+                    <div class="usuario-info">
+
+                        <div
+                            class="usuario-avatar"
+                            id="usuarioAvatar"
+                        >
+                            U
+                        </div>
+
+                        <div class="usuario-datos">
+
+                            <strong id="nombreUsuarioSesion">
+                                Usuario
+                            </strong>
+
+                            <small id="rolUsuarioSesion">
+                                Sin rol
+                            </small>
+
+                            <span id="usernameSesion">
+                                @usuario
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-salir"
+                        onclick="cerrarSesion()"
+                    >
+                        <i class="bi bi-box-arrow-right"></i>
+                        Cerrar sesión
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- =====================================================
+             CONTENIDO PRINCIPAL
+        ====================================================== -->
+        <main class="col-lg-10 px-0">
+
+            <header class="page-header px-4 py-3">
+
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-center gap-3"
+                >
+
+                    <div>
+
+                        <h4 class="fw-bold mb-1">
+                            Gestión de envíos
+                        </h4>
+
+                        <small class="text-muted">
+                            Registra y consulta los traslados de productos entre almacenes.
+                        </small>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="abrirModalNuevoEnvio()"
+                    >
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nuevo envío
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="p-4">
+
+                <!-- =================================================
+                     RESUMEN
+                ================================================== -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-xl col-md-4 col-sm-6">
+
+                        <div class="card resumen-card h-100">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-primary-subtle text-primary">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Total de envíos
+                                    </small>
+
+                                    <h4
+                                        id="totalEnvios"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-xl col-md-4 col-sm-6">
+
+                        <div class="card resumen-card h-100">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-warning-subtle text-warning">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Creados
+                                    </small>
+
+                                    <h4
+                                        id="totalCreados"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-xl col-md-4 col-sm-6">
+
+                        <div class="card resumen-card h-100">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-info-subtle text-info">
+                                    <i class="bi bi-arrow-right-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        En tránsito
+                                    </small>
+
+                                    <h4
+                                        id="totalEnCamino"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-xl col-md-4 col-sm-6">
+
+                        <div class="card resumen-card h-100">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-success-subtle text-success">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Recibidos
+                                    </small>
+
+                                    <h4
+                                        id="totalRecibidos"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-xl col-md-4 col-sm-6">
+
+                        <div class="card resumen-card h-100">
+
+                            <div class="card-body d-flex align-items-center gap-3">
+
+                                <div class="resumen-icono bg-danger-subtle text-danger">
+                                    <i class="bi bi-x-circle"></i>
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Anulados
+                                    </small>
+
+                                    <h4
+                                        id="totalAnulados"
+                                        class="fw-bold mb-0"
+                                    >
+                                        0
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =================================================
+                     FILTROS
+                ================================================== -->
+                <div class="card mb-4">
+
+                    <div class="card-body">
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-lg-5">
+
+                                <label
+                                    for="buscarEnvio"
+                                    class="form-label"
+                                >
+                                    Buscar envío
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        id="buscarEnvio"
+                                        class="form-control"
+                                        placeholder="Buscar por guía, almacén, usuario o estado..."
+                                    >
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-lg-3">
+
+                                <label
+                                    for="filtroEstado"
+                                    class="form-label"
+                                >
+                                    Estado
+                                </label>
+
+                                <select
+                                    id="filtroEstado"
+                                    class="form-select"
+                                >
+                                    <option value="todos">
+                                        Todos
+                                    </option>
+
+                                    <option value="CREADO">
+                                        Creado
+                                    </option>
+
+                                    <option value="EN_TRANSITO">
+                                        En tránsito
+                                    </option>
+
+                                    <option value="RECIBIDO">
+                                        Recibido
+                                    </option>
+
+                                    <option value="ANULADO">
+                                        Anulado
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <label
+                                    for="filtroModoAlmacen"
+                                    class="form-label"
+                                >
+                                    Relación
+                                </label>
+
+                                <select
+                                    id="filtroModoAlmacen"
+                                    class="form-select"
+                                >
+                                    <option value="AMBOS">
+                                        Todos
+                                    </option>
+
+                                    <option value="ORIGEN">
+                                        Como origen
+                                    </option>
+
+                                    <option value="DESTINO">
+                                        Como destino
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary w-100"
+                                    onclick="limpiarFiltros()"
+                                >
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                                    Limpiar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =================================================
+                     TABLA DE ENVÍOS
+                ================================================== -->
+                <div class="card">
+
+                    <div class="card-header bg-white border-0 px-4 pt-4">
+
+                        <h5 class="fw-bold mb-1">
+                            Envíos registrados
+                        </h5>
+
+                        <small class="text-muted">
+                            Consulta la información y administra el estado de las guías.
+                        </small>
+
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle">
+
+                                <thead>
+
+                                <tr>
+
+                                    <th>
+                                        N.º guía
+                                    </th>
+
+                                    <th>
+                                        Fecha
+                                    </th>
+
+                                    <th>
+                                        Origen
+                                    </th>
+
+                                    <th>
+                                        Destino
+                                    </th>
+
+                                    <th>
+                                        Estado
+                                    </th>
+
+                                    <th class="text-center">
+                                        Acciones
+                                    </th>
+
+                                </tr>
+
+                                </thead>
+
+                                <tbody id="tablaEnvios">
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="text-center py-4 text-muted"
+                                    >
+                                        Cargando envíos...
+                                    </td>
+
+                                </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div
+                            id="sinEnvios"
+                            class="text-center py-5 d-none"
+                        >
+
+                            <i class="bi bi-truck fs-1 text-muted"></i>
+
+                            <h5 class="mt-3">
+                                No se encontraron envíos
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                Registra un nuevo envío o modifica los filtros.
+                            </p>
+
+                        </div>
+
+                        <!-- Paginación -->
+                        <div
+                            id="contenedorPaginacion"
+                            class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4"
+                        >
+
+                            <small
+                                id="textoPaginacion"
+                                class="text-muted"
+                            >
+                                Página 1
+                            </small>
+
+                            <nav aria-label="Paginación de envíos">
+
+                                <ul class="pagination pagination-sm mb-0">
+
+                                    <li
+                                        class="page-item"
+                                        id="itemPaginaAnterior"
+                                    >
+
+                                        <button
+                                            type="button"
+                                            class="page-link"
+                                            onclick="cambiarPagina(-1)"
+                                        >
+                                            Anterior
+                                        </button>
+
+                                    </li>
+
+                                    <li class="page-item disabled">
+
+                                        <span
+                                            class="page-link"
+                                            id="paginaActual"
+                                        >
+                                            1
+                                        </span>
+
+                                    </li>
+
+                                    <li
+                                        class="page-item"
+                                        id="itemPaginaSiguiente"
+                                    >
+
+                                        <button
+                                            type="button"
+                                            class="page-link"
+                                            onclick="cambiarPagina(1)"
+                                        >
+                                            Siguiente
+                                        </button>
+
+                                    </li>
+
+                                </ul>
+
+                            </nav>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL NUEVO ENVÍO
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalEnvio"
+    tabindex="-1"
+    aria-labelledby="modalEnvioLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h5
+                        class="modal-title fw-bold"
+                        id="modalEnvioLabel"
+                    >
+                        <i class="bi bi-truck text-primary me-2"></i>
+                        Registrar nuevo envío
+                    </h5>
+
+                    <small class="text-muted">
+                        Completa los datos del traslado y agrega los productos.
+                    </small>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body p-4">
+
+                <!-- Datos generales -->
+                <div class="card border shadow-none mb-4">
+
+                    <div class="card-body">
+
+                        <h6 class="fw-bold mb-3">
+                            Datos generales del envío
+                        </h6>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="almacenOrigen"
+                                    class="form-label required"
+                                >
+                                    Almacén de origen
+                                </label>
+
+                                <select
+                                    id="almacenOrigen"
+                                    class="form-select"
+                                    onchange="cargarProductosAlmacenOrigen()"
+                                >
+                                    <option value="">
+                                        Seleccionar almacén de origen
+                                    </option>
+                                </select>
+
+                                <div class="invalid-feedback">
+                                    Debe seleccionar el almacén de origen.
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="almacenDestino"
+                                    class="form-label required"
+                                >
+                                    Almacén de destino
+                                </label>
+
+                                <select
+                                    id="almacenDestino"
+                                    class="form-select"
+                                >
+                                    <option value="">
+                                        Seleccionar almacén de destino
+                                    </option>
+                                </select>
+
+                                <div class="invalid-feedback">
+                                    Debe seleccionar el almacén de destino.
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label
+                                    for="chofer"
+                                    class="form-label required"
+                                >
+                                    Chofer
+                                </label>
+
+                                <select
+                                    id="chofer"
+                                    class="form-select"
+                                >
+                                    <option value="">
+                                        Seleccionar chofer
+                                    </option>
+                                </select>
+
+                                <div class="invalid-feedback">
+                                    Debe seleccionar un chofer.
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label
+                                    for="vehiculo"
+                                    class="form-label required"
+                                >
+                                    Vehículo
+                                </label>
+
+                                <select
+                                    id="vehiculo"
+                                    class="form-select"
+                                >
+                                    <option value="">
+                                        Seleccionar vehículo
+                                    </option>
+                                </select>
+
+                                <div class="invalid-feedback">
+                                    Debe seleccionar un vehículo.
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label
+                                    for="motivo"
+                                    class="form-label required"
+                                >
+                                    Motivo
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="motivo"
+                                    class="form-control"
+                                    maxlength="200"
+                                    placeholder="Ejemplo: Traslado por reposición"
+                                >
+
+                                <div class="invalid-feedback">
+                                    Debe ingresar el motivo del envío.
+                                </div>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <label
+                                    for="observacion"
+                                    class="form-label"
+                                >
+                                    Observación
+                                </label>
+
+                                <textarea
+                                    id="observacion"
+                                    class="form-control"
+                                    rows="3"
+                                    maxlength="500"
+                                    placeholder="Información adicional del envío"
+                                ></textarea>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Agregar productos -->
+                <div class="card border shadow-none mb-4">
+
+                    <div class="card-body">
+
+                        <h6 class="fw-bold mb-3">
+                            Agregar productos al envío
+                        </h6>
+
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-lg-6">
+
+                                <label
+                                    for="productoSeleccionado"
+                                    class="form-label required"
+                                >
+                                    Producto, variante y unidad
+                                </label>
+
+                                <select
+                                    id="productoSeleccionado"
+                                    class="form-select"
+                                    disabled
+                                    onchange="actualizarStockProductoEnvio()"
+                                >
+                                    <option value="">
+                                        Primero selecciona el almacén de origen
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <label
+                                    for="stockDisponibleEnvio"
+                                    class="form-label"
+                                >
+                                    Stock disponible
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="stockDisponibleEnvio"
+                                    class="form-control"
+                                    value="0"
+                                    readonly
+                                >
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <label
+                                    for="cantidadProducto"
+                                    class="form-label required"
+                                >
+                                    Cantidad
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="cantidadProducto"
+                                    class="form-control"
+                                    min="1"
+                                    max="1"
+                                    step="1"
+                                    value="1"
+                                    disabled
+                                    oninput="validarCantidadProductoEnvio(this)"
+                                >
+
+                            </div>
+
+                            <div class="col-lg-2">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary w-100"
+                                    onclick="agregarProductoEnvio()"
+                                >
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Agregar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Detalle -->
+                <div class="table-responsive border rounded">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Código
+                            </th>
+
+                            <th>
+                                Producto
+                            </th>
+
+                            <th>
+                                Variante
+                            </th>
+
+                            <th>
+                                Unidad
+                            </th>
+
+                            <th class="text-center">
+                                Stock
+                            </th>
+
+                            <th class="text-center">
+                                Cantidad
+                            </th>
+
+                            <th class="text-center">
+                                Stock restante
+                            </th>
+
+                            <th class="text-center">
+                                Acción
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="tablaDetalleEnvio">
+
+                        <tr>
+
+                            <td
+                                colspan="8"
+                                class="text-center py-4 text-muted"
+                            >
+                                Todavía no has agregado productos.
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                        <tfoot>
+
+                        <tr class="table-light">
+
+                            <td
+                                colspan="5"
+                                class="text-end fw-bold"
+                            >
+                                Total de unidades:
+                            </td>
+
+                            <td
+                                class="fw-bold text-center"
+                                id="totalUnidadesEnvio"
+                            >
+                                0
+                            </td>
+
+                            <td colspan="2"></td>
+
+                        </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="btnRegistrarEnvio"
+                    class="btn btn-success"
+                    onclick="registrarEnvio()"
+                >
+                    <i class="bi bi-floppy me-2"></i>
+                    Registrar envío
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL DETALLE DEL ENVÍO
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalDetalleEnvio"
+    tabindex="-1"
+    aria-labelledby="modalDetalleEnvioLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title fw-bold"
+                    id="modalDetalleEnvioLabel"
+                >
+                    <i class="bi bi-eye text-primary me-2"></i>
+                    Detalle del envío
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div
+                class="modal-body p-4"
+                id="contenidoDetalleEnvio"
+            >
+                <div class="text-center py-5 text-muted">
+                    Selecciona un envío para ver su detalle.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL ANULAR GUÍA
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalAnularEnvio"
+    tabindex="-1"
+    aria-labelledby="modalAnularEnvioLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title fw-bold"
+                    id="modalAnularEnvioLabel"
+                >
+                    <i class="bi bi-x-circle text-danger me-2"></i>
+                    Anular guía de envío
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <input
+                    type="hidden"
+                    id="idEnvioAnular"
+                    value=""
+                >
+
+                <div class="alert alert-warning">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    Se anulará la guía:
+
+                    <strong id="numeroGuiaAnular">
+                        -
+                    </strong>
+
+                </div>
+
+                <label
+                    for="motivoAnulacionEnvio"
+                    class="form-label required"
+                >
+                    Motivo de anulación
+                </label>
+
+                <textarea
+                    id="motivoAnulacionEnvio"
+                    class="form-control"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Ingrese el motivo de la anulación"
+                ></textarea>
+
+                <div class="invalid-feedback">
+                    Debe ingresar el motivo de anulación.
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    id="btnConfirmarAnulacionEnvio"
+                    class="btn btn-danger"
+                    onclick="confirmarAnulacionEnvio()"
+                >
+                    <i class="bi bi-x-circle me-2"></i>
+                    Anular guía
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     MODAL VISTA PREVIA PDF
+========================================================= -->
+<div
+    class="modal fade"
+    id="modalPreviewPdfEnvio"
+    tabindex="-1"
+    aria-labelledby="modalPreviewPdfEnvioLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title fw-bold"
+                    id="modalPreviewPdfEnvioLabel"
+                >
+                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                    Guía de envío
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+
+            </div>
+
+            <div class="modal-body p-0">
+
+                <iframe
+                    id="iframeEnvioPdf"
+                    title="Vista previa de la guía de envío"
+                    style="
+                        width: 100%;
+                        height: 75vh;
+                        border: 0;
+                    "
+                ></iframe>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+
+    <div
+        id="toastMensaje"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+
+        <div class="d-flex">
+
+            <div
+                class="toast-body"
+                id="textoToast"
+            >
+                Operación realizada correctamente.
+            </div>
+
+            <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast"
+                aria-label="Cerrar"
+            ></button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Bootstrap -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<!-- Configuración y sesión -->
+<script src="../js/config.js"></script>
+<script src="../js/permisos.js"></script>
+<!-- Lógica de envíos -->
+<script src="../js/envios.js"></script>
+<script src="../js/alertas-global.js"></script>
+
+<!-- Datos visuales de sesión -->
+<script src="../js/sesion.js"></script>
+
+</body>
+
+</html>
