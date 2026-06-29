@@ -550,33 +550,17 @@ function cerrarSesion() {
 
 function limpiarSesion() {
 
-    localStorage.removeItem(
-        "data"
-    );
+    localStorage.removeItem("data");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
 
-    localStorage.removeItem(
-        "accessToken"
-    );
+    localStorage.removeItem("cantidadAlertas");
+    localStorage.removeItem("historialAsistenteIA");
+    localStorage.removeItem("conversacionChatbot");
 
-    localStorage.removeItem(
-        "refreshToken"
-    );
-
-    /*
-     * Se eliminan también las claves anteriores,
-     * por compatibilidad con el código antiguo.
-     */
-    localStorage.removeItem(
-        "token"
-    );
-
-    localStorage.removeItem(
-        "usuario"
-    );
-
-    localStorage.removeItem(
-        "conversacionChatbot"
-    );
+    sessionStorage.clear();
 
     /*
      * No se elimina usuarioRecordado porque pertenece

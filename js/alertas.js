@@ -18,7 +18,7 @@ const ENDPOINTS_ALERTAS = {
 let alertasPagina = [];
 
 let paginaActualAlertas = 0;
-let tamanioPaginaAlertas = 10;
+let tamanioPaginaAlertas = 5;
 let totalPaginasAlertas = 0;
 let totalElementosAlertas = 0;
 

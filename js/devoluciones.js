@@ -28,16 +28,23 @@ const DEVOLUCION_ENDPOINTS = {
         return `${CONFIG.API_URL}/devoluciones/${idDevolucion}/anular`;
     },
 
-    cabecera: function (idDevolucion) {
-        return `${CONFIG.API_URL}/devoluciones/${idDevolucion}/cabecera`;
-    },
+    pdf: function (rutaPdf) {
 
-    detalle: function (idDevolucion) {
-        return `${CONFIG.API_URL}/devoluciones/${idDevolucion}/detalle`;
-    },
+        const rutaLimpia =
+            String(rutaPdf ?? "")
+                .trim()
+                .replaceAll("\\", "/")
+                .replace(/^\/+/, "");
 
-    pdf: function (idDevolucion) {
-        return `${CONFIG.API_URL}/devoluciones/${idDevolucion}/pdf`;
+        const rutaCodificada =
+            rutaLimpia
+                .split("/")
+                .map(function (segmento) {
+                    return encodeURIComponent(segmento);
+                })
+                .join("/");
+
+        return `${CONFIG.API_URL}/documentos/${rutaCodificada}`;
     },
 
     choferes:
@@ -66,11 +73,14 @@ let totalPaginasServidor = 0;
 
 let totalElementosServidor = 0;
 
-const tamanioPagina = 10;
+const tamanioPagina = 5;
 
 let temporizadorBusqueda = null;
 
 let idDevolucionSeleccionada = null;
+
+let clienteWebSocketDevoluciones = null;
+let suscripcionWebSocketDevoluciones = null;
 
 
 /* ============================================================
@@ -102,6 +112,8 @@ async function iniciarPaginaDevoluciones() {
         ]);
 
         await cargarDevoluciones();
+
+        conectarWebSocketDevoluciones();
 
     } catch (error) {
 
@@ -349,6 +361,143 @@ function obtenerIdAlmacenSesion() {
     return Number.isNaN(numero)
         ? null
         : numero;
+}
+
+function conectarWebSocketDevoluciones() {
+
+    const idAlmacen =
+        obtenerIdAlmacenSesion();
+
+    if (
+        !Number.isFinite(idAlmacen) ||
+        idAlmacen <= 0
+    ) {
+        console.warn(
+            "No se inició WebSocket de devoluciones: almacén inválido."
+        );
+
+        return;
+    }
+
+    if (
+        typeof SockJS === "undefined" ||
+        typeof StompJs === "undefined"
+    ) {
+        console.error(
+            "SockJS o StompJs no están cargados."
+        );
+
+        return;
+    }
+
+    if (
+        clienteWebSocketDevoluciones &&
+        clienteWebSocketDevoluciones.active
+    ) {
+        return;
+    }
+
+    clienteWebSocketDevoluciones =
+        new StompJs.Client({
+
+            webSocketFactory: function () {
+                return new SockJS(
+                    CONFIG.WS_URL
+                );
+            },
+
+            reconnectDelay: 5000,
+
+            heartbeatIncoming: 10000,
+
+            heartbeatOutgoing: 10000,
+
+            debug: function (mensaje) {
+                console.log(
+                    "[STOMP DEVOLUCIONES]",
+                    mensaje
+                );
+            }
+        });
+
+    clienteWebSocketDevoluciones.onConnect =
+        function () {
+
+            console.log(
+                "WebSocket de devoluciones conectado correctamente."
+            );
+
+            suscribirseCanalDevoluciones(
+                idAlmacen
+            );
+        };
+
+    clienteWebSocketDevoluciones.onStompError =
+        function (frame) {
+
+            console.error(
+                "Error STOMP devoluciones:",
+                frame.headers?.message
+            );
+
+            console.error(
+                frame.body
+            );
+        };
+
+    clienteWebSocketDevoluciones.onWebSocketError =
+        function (error) {
+
+            console.error(
+                "Error WebSocket devoluciones:",
+                error
+            );
+        };
+
+    clienteWebSocketDevoluciones.onWebSocketClose =
+        function () {
+
+            console.warn(
+                "WebSocket de devoluciones desconectado."
+            );
+        };
+
+    clienteWebSocketDevoluciones.activate();
+}
+
+function suscribirseCanalDevoluciones(
+    idAlmacen
+) {
+
+    if (
+        !clienteWebSocketDevoluciones ||
+        !clienteWebSocketDevoluciones.connected
+    ) {
+        return;
+    }
+
+    if (suscripcionWebSocketDevoluciones) {
+
+        suscripcionWebSocketDevoluciones
+            .unsubscribe();
+
+        suscripcionWebSocketDevoluciones =
+            null;
+    }
+
+    const canal =
+        `/topic/devoluciones/almacen/${idAlmacen}`;
+
+    suscripcionWebSocketDevoluciones =
+        clienteWebSocketDevoluciones.subscribe(
+            canal,
+            procesarEventoWebSocketDevolucion
+        );
+
+    console.log(
+        "Suscrito al canal:",
+        canal
+    );
 }
 
 
@@ -645,7 +794,7 @@ async function cargarDevoluciones() {
 
         renderizarDevolucionesFiltradas();
 
-        actualizarResumenDevoluciones();
+        await actualizarResumenDevoluciones();
 
         actualizarPaginacionDevoluciones();
 
@@ -661,7 +810,7 @@ async function cargarDevoluciones() {
 
         renderizarDevoluciones([]);
 
-        actualizarResumenDevoluciones();
+        await actualizarResumenDevoluciones();
 
         actualizarPaginacionDevoluciones();
 
@@ -672,6 +821,58 @@ async function cargarDevoluciones() {
     }
 }
 
+async function procesarEventoWebSocketDevolucion(
+    mensaje
+) {
+    try {
+
+        const evento =
+            JSON.parse(mensaje.body);
+
+        console.log(
+            "Evento WebSocket de devolución recibido:",
+            evento
+        );
+
+        /*
+         * Espera corta para que termine el COMMIT
+         * de la transacción del backend.
+         */
+        await new Promise(
+            resolve => setTimeout(resolve, 500)
+        );
+
+        /*
+         * Esta función vuelve a consultar el backend,
+         * actualiza la tabla, resumen y paginación.
+         */
+        await cargarDevoluciones();
+
+        /*
+         * Actualiza también los envíos disponibles,
+         * porque una devolución depende de una guía recibida.
+         */
+        await cargarEnviosDisponibles();
+
+        mostrarMensajeWebSocketDevolucion(
+            evento
+        );
+
+        if (
+            typeof actualizarAlertasGlobales ===
+            "function"
+        ) {
+            actualizarAlertasGlobales();
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error procesando evento de devolución:",
+            error
+        );
+    }
+}
 
 function normalizarDevolucion(
     item
@@ -736,7 +937,13 @@ function normalizarDevolucion(
             item.almacenDestino ??
             item.almacendestino ??
             item.destino ??
-            "Sin destino"
+            "Sin destino",
+
+        rutaPdf:
+            item.rutaPdf ??
+            item.rutapdf ??
+            item.ruta_pdf ??
+            null
     };
 }
 
@@ -808,6 +1015,7 @@ function renderizarDevolucionesFiltradas() {
         filtradas
     );
 }
+
 
 
 function renderizarDevoluciones(
@@ -910,6 +1118,77 @@ function renderizarDevoluciones(
                     "EN_TRANSITO"
                 );
 
+            const rutaPdf =
+                devolucion.rutaPdf ??
+                devolucion.rutapdf ??
+                devolucion.ruta_pdf ??
+                null;
+
+            const botonPdf =
+                rutaPdf
+                    ? `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            title="Ver PDF"
+                            onclick="verPdfDevolucion(${devolucion.idDevolucion})"
+                        >
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </button>
+                    `
+                    : `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            title="PDF no disponible"
+                            disabled
+                        >
+                            <i class="bi bi-file-earmark-x"></i>
+                        </button>
+                    `;
+
+            const botonEnviar =
+                puedeEnviar
+                    ? `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-primary"
+                            title="Enviar devolución"
+                            onclick="enviarDevolucion(${devolucion.idDevolucion})"
+                        >
+                            <i class="bi bi-send"></i>
+                        </button>
+                    `
+                    : "";
+
+            const botonRecibir =
+                puedeRecibir
+                    ? `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-success"
+                            title="Recibir devolución"
+                            onclick="recibirDevolucion(${devolucion.idDevolucion})"
+                        >
+                            <i class="bi bi-box-arrow-in-down"></i>
+                        </button>
+                    `
+                    : "";
+
+            const botonAnular =
+                puedeAnular
+                    ? `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            title="Anular devolución"
+                            onclick="abrirModalAnularDevolucion(${devolucion.idDevolucion})"
+                        >
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    `
+                    : "";
+
             const fila =
                 document.createElement(
                     "tr"
@@ -919,112 +1198,54 @@ function renderizarDevoluciones(
                 <td>
                     <span class="fw-semibold">
                         ${escaparHtml(
-                            devolucion.numeroComprobante
-                        )}
+                devolucion.numeroComprobante
+            )}
                     </span>
                 </td>
 
                 <td>
                     ${escaparHtml(
-                        formatearFechaHora(
-                            devolucion.fecha
-                        )
-                    )}
+                formatearFechaHora(
+                    devolucion.fecha
+                )
+            )}
                 </td>
 
                 <td>
                     ${escaparHtml(
-                        obtenerNombreTipo(
-                            devolucion.tipo
-                        )
-                    )}
+                obtenerNombreTipo(
+                    devolucion.tipo
+                )
+            )}
                 </td>
 
                 <td>
                     ${escaparHtml(
-                        devolucion.almacenOrigen
-                    )}
+                devolucion.almacenOrigen
+            )}
                 </td>
 
                 <td>
                     ${escaparHtml(
-                        devolucion.almacenDestino
-                    )}
+                devolucion.almacenDestino
+            )}
                 </td>
 
                 <td>
                     ${obtenerBadgeEstado(
-                        devolucion.estado
-                    )}
+                devolucion.estado
+            )}
                 </td>
 
                 <td class="text-center">
 
-                    <div class="d-flex justify-content-center gap-1 flex-wrap">
-
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            title="Ver detalle"
-                            onclick="verDetalleDevolucion(${devolucion.idDevolucion})"
-                        >
-                            <i class="bi bi-eye"></i>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-outline-danger"
-                            title="Ver PDF"
-                            onclick="verPdfDevolucion(${devolucion.idDevolucion})"
-                        >
-                            <i class="bi bi-file-earmark-pdf"></i>
-                        </button>
-
-                        ${
-                            puedeEnviar
-                                ? `
-                                    <button
-                                        type="button"
-                                        class="btn btn-sm btn-outline-primary"
-                                        title="Enviar devolución"
-                                        onclick="enviarDevolucion(${devolucion.idDevolucion})"
-                                    >
-                                        <i class="bi bi-send"></i>
-                                    </button>
-                                `
-                                : ""
-                        }
-
-                        ${
-                            puedeRecibir
-                                ? `
-                                    <button
-                                        type="button"
-                                        class="btn btn-sm btn-outline-success"
-                                        title="Recibir devolución"
-                                        onclick="recibirDevolucion(${devolucion.idDevolucion})"
-                                    >
-                                        <i class="bi bi-box-arrow-in-down"></i>
-                                    </button>
-                                `
-                                : ""
-                        }
-
-                        ${
-                            puedeAnular
-                                ? `
-                                    <button
-                                        type="button"
-                                        class="btn btn-sm btn-outline-danger"
-                                        title="Anular devolución"
-                                        onclick="abrirModalAnularDevolucion(${devolucion.idDevolucion})"
-                                    >
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                `
-                                : ""
-                        }
-
+                    <div
+                        class="d-flex justify-content-center gap-1 flex-wrap"
+                    >
+                        ${botonPdf}
+                        ${botonEnviar}
+                        ${botonRecibir}
+                        ${botonAnular}
                     </div>
 
                 </td>
@@ -1036,7 +1257,6 @@ function renderizarDevoluciones(
         }
     );
 }
-
 
 /* ============================================================
    RESUMEN
@@ -1069,7 +1289,7 @@ async function actualizarResumenDevoluciones() {
         document.getElementById("totalEnTransito").textContent = data.enTransito;
         document.getElementById("totalRecibidas").textContent = data.recibidas;
         document.getElementById("totalAnuladas").textContent = data.anuladas;
-        
+
 
     } catch (error) {
         console.error("Error al obtener kardex:", error);
@@ -1133,7 +1353,7 @@ function actualizarPaginacionDevoluciones() {
             "disabled",
             totalPaginasServidor === 0 ||
             paginaActualServidor >=
-                totalPaginasServidor - 1
+            totalPaginasServidor - 1
         );
 }
 
@@ -1149,7 +1369,7 @@ async function cambiarPagina(
     if (
         nuevaPagina < 0 ||
         nuevaPagina >=
-            totalPaginasServidor
+        totalPaginasServidor
     ) {
 
         return;
@@ -2171,7 +2391,7 @@ function agregarProductoDevolucion() {
     const cantidadAcumulada =
         productoExistente
             ? productoExistente.cantidad +
-                cantidad
+            cantidad
             : cantidad;
 
     if (
@@ -2291,20 +2511,20 @@ function renderizarDetalleNuevaDevolucion() {
 
                             <td>
                                 ${escaparHtml(
-                                    producto.producto
-                                )}
+                        producto.producto
+                    )}
                             </td>
 
                             <td>
                                 ${escaparHtml(
-                                    producto.variante
-                                )}
+                        producto.variante
+                    )}
                             </td>
 
                             <td>
                                 ${escaparHtml(
-                                    producto.unidad
-                                )}
+                        producto.unidad
+                    )}
                             </td>
 
                             <td class="text-center">
@@ -2327,15 +2547,15 @@ function renderizarDetalleNuevaDevolucion() {
 
                             <td>
                                 ${escaparHtml(
-                                    producto.motivo
-                                )}
+                        producto.motivo
+                    )}
                             </td>
 
                             <td>
                                 ${escaparHtml(
-                                    producto.observacion ||
-                                    "Sin observación"
-                                )}
+                        producto.observacion ||
+                        "Sin observación"
+                    )}
                             </td>
 
                             <td class="text-center">
@@ -3075,355 +3295,98 @@ async function confirmarAnulacionDevolucion() {
 }
 
 
-/* ============================================================
-   VER DETALLE
-============================================================ */
-
-async function verDetalleDevolucion(
-    idDevolucion
-) {
-
-    const contenido =
-        document.getElementById(
-            "contenidoDetalleDevolucion"
-        );
-
-    const modal =
-        document.getElementById(
-            "modalDetalleDevolucion"
-        );
-
-    if (!contenido || !modal) {
-
-        mostrarToast(
-            "No se encontró el modal de detalle.",
-            "danger"
-        );
-
-        return;
-    }
-
-    contenido.innerHTML = `
-        <div class="text-center py-5 text-muted">
-
-            <span
-                class="spinner-border spinner-border-sm me-2"
-                role="status"
-            ></span>
-
-            Cargando detalle...
-
-        </div>
-    `;
-
-    bootstrap.Modal
-        .getOrCreateInstance(
-            modal
-        )
-        .show();
-
-    try {
-
-        const [
-            cabecera,
-            detalle
-        ] = await Promise.all([
-
-            realizarPeticionDevolucion(
-                DEVOLUCION_ENDPOINTS.cabecera(
-                    idDevolucion
-                )
-            ),
-
-            realizarPeticionDevolucion(
-                DEVOLUCION_ENDPOINTS.detalle(
-                    idDevolucion
-                )
-            )
-        ]);
-
-        const listaDetalle =
-            obtenerListaRespuesta(
-                detalle
-            );
-
-        const filas =
-            listaDetalle.length > 0
-                ? listaDetalle.map(
-                    function (item) {
-
-                        return `
-                            <tr>
-
-                                <td>
-                                    ${escaparHtml(
-                                        item.producto ??
-                                        "Sin producto"
-                                    )}
-                                </td>
-
-                                <td>
-                                    ${escaparHtml(
-                                        item.variante ??
-                                        "Sin variante"
-                                    )}
-                                </td>
-
-                                <td class="text-center">
-                                    ${Number(
-                                        item.cantidad ??
-                                        0
-                                    )}
-                                </td>
-
-                                <td>
-                                    ${escaparHtml(
-                                        item.motivo ??
-                                        "Sin motivo"
-                                    )}
-                                </td>
-
-                                <td>
-                                    ${escaparHtml(
-                                        item.observacion ??
-                                        "Sin observación"
-                                    )}
-                                </td>
-
-                            </tr>
-                        `;
-                    }
-                ).join("")
-                : `
-                    <tr>
-                        <td
-                            colspan="5"
-                            class="text-center py-4 text-muted"
-                        >
-                            La devolución no contiene productos.
-                        </td>
-                    </tr>
-                `;
-
-        contenido.innerHTML = `
-            <div class="row g-3 mb-4">
-
-                <div class="col-md-4">
-
-                    <small class="text-muted">
-                        Número de devolución
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            cabecera.numeroComprobante ??
-                            cabecera.numerocomprobante ??
-                            "Sin número"
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <small class="text-muted">
-                        Fecha
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            formatearFechaHora(
-                                cabecera.fecha
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <small class="text-muted">
-                        Estado
-                    </small>
-
-                    <div>
-                        ${obtenerBadgeEstado(
-                            normalizarEstado(
-                                cabecera.estado
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <small class="text-muted">
-                        Tipo
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            obtenerNombreTipo(
-                                cabecera.tipo
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <small class="text-muted">
-                        Usuario
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            cabecera.usuario ??
-                            "Sin usuario"
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <small class="text-muted">
-                        ID de guía relacionada
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            cabecera.idGuiaEnvio ??
-                            cabecera.idguiaenvio ??
-                            "Sin guía"
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-6">
-
-                    <small class="text-muted">
-                        Almacén de origen
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            cabecera.origen ??
-                            "Sin origen"
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="col-md-6">
-
-                    <small class="text-muted">
-                        Almacén de destino
-                    </small>
-
-                    <div class="fw-semibold">
-                        ${escaparHtml(
-                            cabecera.destino ??
-                            "Sin destino"
-                        )}
-                    </div>
-
-                </div>
-
-            </div>
-
-            <h6 class="fw-bold mb-3">
-                Productos devueltos
-            </h6>
-
-            <div class="table-responsive border rounded">
-
-                <table class="table table-hover align-middle mb-0">
-
-                    <thead class="table-light">
-
-                        <tr>
-
-                            <th>
-                                Producto
-                            </th>
-
-                            <th>
-                                Variante
-                            </th>
-
-                            <th class="text-center">
-                                Cantidad
-                            </th>
-
-                            <th>
-                                Motivo
-                            </th>
-
-                            <th>
-                                Observación
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-                        ${filas}
-                    </tbody>
-
-                </table>
-
-            </div>
-        `;
-
-    } catch (error) {
-
-        contenido.innerHTML = `
-            <div class="alert alert-danger mb-0">
-
-                <i class="bi bi-exclamation-triangle me-2"></i>
-
-                ${escaparHtml(
-                    obtenerMensajeError(error)
-                )}
-
-            </div>
-        `;
-    }
-}
-
 
 /* ============================================================
    VER PDF
 ============================================================ */
-
 async function verPdfDevolucion(
     idDevolucion
 ) {
 
-    const token =
-        obtenerToken();
+    let urlTemporalPdf = null;
 
     try {
 
+        const devolucion =
+            buscarDevolucionPorId(
+                idDevolucion
+            );
+
+        if (!devolucion) {
+
+            throw new Error(
+                "No se encontró la devolución seleccionada."
+            );
+        }
+
+        const rutaPdf =
+            devolucion.rutaPdf ??
+            devolucion.rutapdf ??
+            devolucion.ruta_pdf ??
+            null;
+
+        if (
+            !rutaPdf ||
+            String(rutaPdf).trim() === ""
+        ) {
+
+            throw new Error(
+                "Esta devolución no tiene un PDF disponible."
+            );
+        }
+
+        if (
+            !String(rutaPdf)
+                .toLowerCase()
+                .endsWith(".pdf")
+        ) {
+
+            throw new Error(
+                "La ruta registrada no corresponde a un archivo PDF."
+            );
+        }
+
+        const token =
+            obtenerToken();
+
+        if (!token) {
+
+            throw new Error(
+                "No se encontró el token de acceso."
+            );
+        }
+
+        const url =
+            DEVOLUCION_ENDPOINTS.pdf(
+                rutaPdf
+            );
+
+        console.log(
+            "Ruta PDF devolución:",
+            rutaPdf
+        );
+
+        console.log(
+            "URL PDF devolución:",
+            url
+        );
+
         const response =
             await fetch(
-                DEVOLUCION_ENDPOINTS.pdf(
-                    idDevolucion
-                ),
+                url,
                 {
                     method: "GET",
 
                     headers: {
+                        Accept:
+                            "application/pdf",
+
                         Authorization:
                             `Bearer ${token}`
                     },
 
-                    cache: "no-store"
+                    cache:
+                        "no-store"
                 }
             );
 
@@ -3449,6 +3412,7 @@ async function verPdfDevolucion(
                 mensaje =
                     error?.mensaje ||
                     error?.message ||
+                    error?.error ||
                     mensaje;
 
             } else {
@@ -3456,7 +3420,7 @@ async function verPdfDevolucion(
                 const texto =
                     await response.text();
 
-                if (texto) {
+                if (texto?.trim()) {
                     mensaje = texto;
                 }
             }
@@ -3469,7 +3433,14 @@ async function verPdfDevolucion(
         const blob =
             await response.blob();
 
-        const urlPdf =
+        if (blob.size === 0) {
+
+            throw new Error(
+                "El archivo PDF está vacío."
+            );
+        }
+
+        urlTemporalPdf =
             URL.createObjectURL(
                 blob
             );
@@ -3486,17 +3457,13 @@ async function verPdfDevolucion(
 
         if (!iframe || !modal) {
 
-            URL.revokeObjectURL(
-                urlPdf
-            );
-
             throw new Error(
                 "No se encontró el visor de PDF."
             );
         }
 
         iframe.src =
-            urlPdf;
+            urlTemporalPdf;
 
         bootstrap.Modal
             .getOrCreateInstance(
@@ -3508,11 +3475,18 @@ async function verPdfDevolucion(
             "hidden.bs.modal",
             function limpiarPdf() {
 
-                iframe.src = "";
+                iframe.src =
+                    "about:blank";
 
-                URL.revokeObjectURL(
-                    urlPdf
-                );
+                if (urlTemporalPdf) {
+
+                    URL.revokeObjectURL(
+                        urlTemporalPdf
+                    );
+
+                    urlTemporalPdf =
+                        null;
+                }
 
                 modal.removeEventListener(
                     "hidden.bs.modal",
@@ -3522,6 +3496,18 @@ async function verPdfDevolucion(
         );
 
     } catch (error) {
+
+        console.error(
+            "Error visualizando PDF:",
+            error
+        );
+
+        if (urlTemporalPdf) {
+
+            URL.revokeObjectURL(
+                urlTemporalPdf
+            );
+        }
 
         mostrarToast(
             obtenerMensajeError(error),
@@ -3634,8 +3620,8 @@ function obtenerBadgeEstado(
             class="badge rounded-pill ${configuracion.clase}"
         >
             ${escaparHtml(
-                configuracion.texto
-            )}
+        configuracion.texto
+    )}
         </span>
     `;
 }
@@ -3900,8 +3886,8 @@ function cambiarEstadoBoton(
             ></span>
 
             ${escaparHtml(
-                textoProcesando
-            )}
+            textoProcesando
+        )}
         `;
 
         return;
@@ -4014,6 +4000,71 @@ function mostrarToast(
         .show();
 }
 
+function mostrarMensajeWebSocketDevolucion(
+    evento
+) {
+
+    const accion =
+        String(
+            evento?.accion || ""
+        ).toUpperCase();
+
+    let mensaje =
+        evento?.mensaje ||
+        "Se actualizó una devolución.";
+
+    let tipo =
+        "info";
+
+    switch (accion) {
+
+        case "DEVOLUCION_CREADA":
+
+            mensaje =
+                "Se creó una nueva devolución.";
+
+            tipo =
+                "success";
+
+            break;
+
+        case "DEVOLUCION_ENVIADA":
+
+            mensaje =
+                "La devolución fue enviada.";
+
+            tipo =
+                "info";
+
+            break;
+
+        case "DEVOLUCION_RECIBIDA":
+
+            mensaje =
+                "La devolución fue recibida.";
+
+            tipo =
+                "success";
+
+            break;
+
+        case "DEVOLUCION_ANULADA":
+
+            mensaje =
+                "La devolución fue anulada.";
+
+            tipo =
+                "danger";
+
+            break;
+    }
+
+    mostrarToast(
+        mensaje,
+        tipo
+    );
+}
+
 
 /* ============================================================
    FUNCIONES GLOBALES
@@ -4055,8 +4106,7 @@ window.abrirModalAnularDevolucion =
 window.confirmarAnulacionDevolucion =
     confirmarAnulacionDevolucion;
 
-window.verDetalleDevolucion =
-    verDetalleDevolucion;
+
 
 window.verPdfDevolucion =
     verPdfDevolucion;
@@ -4069,3 +4119,24 @@ window.cambiarPagina =
 
 window.cargarDevoluciones =
     cargarDevoluciones;
+
+window.addEventListener(
+    "beforeunload",
+    function () {
+
+        if (
+            suscripcionWebSocketDevoluciones
+        ) {
+            suscripcionWebSocketDevoluciones
+                .unsubscribe();
+        }
+
+        if (
+            clienteWebSocketDevoluciones &&
+            clienteWebSocketDevoluciones.active
+        ) {
+            clienteWebSocketDevoluciones
+                .deactivate();
+        }
+    }
+);

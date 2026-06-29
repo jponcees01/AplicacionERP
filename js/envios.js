@@ -26,9 +26,17 @@
         anularGuia: (idGuia) =>
             `${CONFIG.API_URL}/envios/${idGuia}/anular`,
 
-        pdfGuia: (idGuia) =>
-            `${CONFIG.API_URL}/envios/${idGuia}/pdf`,
+        pdfDocumento: (rutaPdf) => {
+            const rutaLimpia = String(rutaPdf ?? "")
+                .trim()
+                .replaceAll("\\", "/")
+                .replace(/^\/+/, "");
 
+            return `${CONFIG.API_URL}/documentos/${rutaLimpia
+                .split("/")
+                .map(segmento => encodeURIComponent(segmento))
+                .join("/")}`;
+        },
         almacenes:
             `${CONFIG.API_URL}/inventario/combo?tipo=ALMACEN`,
 
@@ -58,6 +66,12 @@
     let idEnvioSeleccionado = null;
     let temporizadorBusqueda = null;
 
+    let clienteWebSocketEnvios = null;
+    let suscripcionWebSocketEnvios = null;
+    let temporizadorActualizacionWebSocketEnvios = null;
+    let cargandoEnvios = false;
+    let actualizacionWebSocketPendiente = false;
+
     /* =========================================================
        INICIALIZACIÓN
     ========================================================= */
@@ -74,10 +88,14 @@
         limpiarStockProducto();
 
         try {
+
             await cargarCombosGenerales();
             await cargarEnvios();
 
+            conectarWebSocketEnvios();
+
         } catch (error) {
+
             console.error(
                 "Error inicializando envíos:",
                 error
@@ -208,6 +226,368 @@
             0
         );
     }
+
+    /* =========================================================
+       WEBSOCKET DE ENVÍOS
+    ========================================================= */
+
+
+    function conectarWebSocketEnvios() {
+
+        const idAlmacen =
+            obtenerIdAlmacenSesion();
+
+        if (
+            !Number.isFinite(idAlmacen) ||
+            idAlmacen <= 0
+        ) {
+            console.warn(
+                "No se inició el WebSocket porque el usuario no tiene almacén asignado."
+            );
+
+            return;
+        }
+
+        if (
+            typeof SockJS === "undefined" ||
+            typeof StompJs === "undefined"
+        ) {
+            console.error(
+                "SockJS o StompJS no están cargados."
+            );
+
+            return;
+        }
+
+        if (
+            clienteWebSocketEnvios &&
+            clienteWebSocketEnvios.active
+        ) {
+            console.log(
+                "El WebSocket de envíos ya está activo."
+            );
+
+            return;
+        }
+
+        const urlWebSocket = CONFIG.WS_URL;
+
+        console.log(
+            "Conectando WebSocket de envíos:",
+            urlWebSocket
+        );
+
+        clienteWebSocketEnvios =
+            new StompJs.Client({
+
+                webSocketFactory:
+                    function () {
+                        return new SockJS(
+                            urlWebSocket
+                        );
+                    },
+
+                reconnectDelay:
+                    5000,
+
+                heartbeatIncoming:
+                    10000,
+
+                heartbeatOutgoing:
+                    10000,
+
+                debug:
+                    function (mensaje) {
+                        console.log(
+                            "[STOMP ENVÍOS]",
+                            mensaje
+                        );
+                    }
+            });
+
+
+        clienteWebSocketEnvios.onConnect =
+            function () {
+
+                console.log(
+                    "WebSocket de envíos conectado correctamente."
+                );
+
+                suscribirseCanalEnvios(
+                    idAlmacen
+                );
+            };
+
+
+        clienteWebSocketEnvios.onStompError =
+            function (frame) {
+
+                console.error(
+                    "Error STOMP:",
+                    frame.headers?.message
+                );
+
+                console.error(
+                    frame.body
+                );
+            };
+
+
+        clienteWebSocketEnvios.onWebSocketError =
+            function (error) {
+
+                console.error(
+                    "Error en WebSocket de envíos:",
+                    error
+                );
+            };
+
+
+        clienteWebSocketEnvios.onWebSocketClose =
+            function () {
+
+                console.warn(
+                    "WebSocket de envíos desconectado."
+                );
+            };
+
+
+        clienteWebSocketEnvios.activate();
+    }
+
+
+    function suscribirseCanalEnvios(
+        idAlmacen
+    ) {
+
+        if (
+            !clienteWebSocketEnvios ||
+            !clienteWebSocketEnvios.connected
+        ) {
+            console.warn(
+                "El cliente WebSocket todavía no está conectado."
+            );
+
+            return;
+        }
+
+        if (suscripcionWebSocketEnvios) {
+
+            suscripcionWebSocketEnvios
+                .unsubscribe();
+
+            suscripcionWebSocketEnvios =
+                null;
+        }
+
+        const canal =
+            `/topic/envios/almacen/${idAlmacen}`;
+
+        suscripcionWebSocketEnvios =
+            clienteWebSocketEnvios.subscribe(
+                canal,
+                procesarEventoWebSocketEnvio
+            );
+
+        console.log(
+            "Suscrito al canal:",
+            canal
+        );
+    }
+
+
+    async function procesarEventoWebSocketEnvio(
+        mensaje
+    ) {
+
+        try {
+
+            const evento =
+                JSON.parse(
+                    mensaje.body
+                );
+
+            console.log(
+                "Evento WebSocket de envío recibido:",
+                evento
+            );
+
+            /*
+             * Si llegan varios eventos seguidos,
+             * cancelar la recarga anterior y ejecutar
+             * solamente la última.
+             */
+            clearTimeout(
+                temporizadorActualizacionWebSocketEnvios
+            );
+
+            temporizadorActualizacionWebSocketEnvios =
+                setTimeout(
+                    async function () {
+
+                        await actualizarVistaEnviosWebSocket();
+
+                        mostrarMensajeWebSocketEnvio(
+                            evento
+                        );
+
+                    },
+                    700
+                );
+
+        } catch (error) {
+
+            console.error(
+                "No se pudo procesar el evento WebSocket:",
+                error
+            );
+        }
+    }
+
+    async function actualizarVistaEnviosWebSocket() {
+
+        if (cargandoEnvios) {
+
+            actualizacionWebSocketPendiente = true;
+
+            console.log(
+                "Actualización WebSocket pendiente porque cargarEnvios sigue ejecutándose."
+            );
+
+            return;
+        }
+
+        actualizacionWebSocketPendiente = false;
+
+        await cargarEnvios();
+
+        if (
+            typeof actualizarAlertasGlobales ===
+            "function"
+        ) {
+            actualizarAlertasGlobales();
+        }
+    }
+
+
+    function mostrarMensajeWebSocketEnvio(
+        evento
+    ) {
+
+        const accion =
+            String(
+                evento?.accion || ""
+            ).toUpperCase();
+
+        let mensaje =
+            evento?.mensaje ||
+            "Se actualizó una guía de envío.";
+
+        switch (accion) {
+
+            case "ENVIO_CREADO":
+
+                mensaje =
+                    "Se creó una nueva guía de envío.";
+
+                break;
+
+            case "ENVIO_GENERADO_DESDE_SOLICITUD":
+
+                mensaje =
+                    "Se generó una guía desde una solicitud.";
+
+                break;
+
+            case "GUIA_ENVIADA":
+
+                mensaje =
+                    "Una guía fue enviada.";
+
+                break;
+
+            case "GUIA_RECIBIDA":
+
+                mensaje =
+                    "Una guía fue recibida.";
+
+                break;
+
+            case "GUIA_ANULADA":
+
+                mensaje =
+                    "Una guía fue anulada.";
+
+                break;
+        }
+
+        mostrarToast(
+            mensaje,
+            obtenerTipoToastEventoEnvio(
+                accion
+            )
+        );
+    }
+
+
+    function obtenerTipoToastEventoEnvio(
+        accion
+    ) {
+
+        switch (accion) {
+
+            case "GUIA_RECIBIDA":
+                return "success";
+
+            case "GUIA_ANULADA":
+                return "danger";
+
+            case "GUIA_ENVIADA":
+                return "info";
+
+            case "ENVIO_CREADO":
+            case "ENVIO_GENERADO_DESDE_SOLICITUD":
+                return "success";
+
+            default:
+                return "info";
+        }
+    }
+
+
+    async function desconectarWebSocketEnvios() {
+
+        try {
+
+            if (suscripcionWebSocketEnvios) {
+
+                suscripcionWebSocketEnvios
+                    .unsubscribe();
+
+                suscripcionWebSocketEnvios =
+                    null;
+            }
+
+            if (
+                clienteWebSocketEnvios &&
+                clienteWebSocketEnvios.active
+            ) {
+
+                await clienteWebSocketEnvios
+                    .deactivate();
+            }
+
+            clienteWebSocketEnvios = null;
+
+        } catch (error) {
+
+            console.error(
+                "Error desconectando WebSocket:",
+                error
+            );
+        }
+    }
+
 
     /* =========================================================
        PETICIONES HTTP
@@ -612,6 +992,8 @@
         const parametros =
             new URLSearchParams();
 
+        cargandoEnvios = true;
+
         if (idAlmacen > 0) {
             parametros.set(
                 "idAlmacen",
@@ -680,7 +1062,7 @@
                 );
 
             renderizarEnviosFiltrados();
-            actualizarResumen();
+            await actualizarResumen();
             actualizarPaginacion();
 
         } catch (error) {
@@ -689,13 +1071,30 @@
 
             renderizarEnvios([]);
 
-            actualizarResumen();
+            await actualizarResumen();
             actualizarPaginacion();
 
             mostrarToast(
                 obtenerMensajeError(error),
                 "danger"
             );
+        }
+
+        finally {
+
+            cargandoEnvios = false;
+
+            if (actualizacionWebSocketPendiente) {
+
+                actualizacionWebSocketPendiente = false;
+
+                setTimeout(
+                    function () {
+                        actualizarVistaEnviosWebSocket();
+                    },
+                    300
+                );
+            }
         }
     }
 
@@ -809,7 +1208,13 @@
 
             usuario:
                 item.usuario ??
-                "Sin usuario"
+                "Sin usuario",
+            rutaPdf:
+                item.rutaPdf ??
+                item.rutapdf ??
+                item.ruta_pdf ??
+                null
+
         };
     }
 
@@ -1023,28 +1428,27 @@
                             </button>
                         `
                         : "";
-
-                const botonDetalle = `
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        title="Ver detalle"
-                        onclick="verDetalleEnvio(${envio.idEnvio})"
-                    >
-                        <i class="bi bi-eye"></i>
-                    </button>
-                `;
-
-                const botonPdf = `
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-danger"
-                        title="Ver PDF"
-                        onclick="verPdfEnvio(${envio.idEnvio})"
-                    >
-                        <i class="bi bi-file-earmark-pdf"></i>
-                    </button>
-                `;
+                const botonPdf = envio.rutaPdf
+                    ? `
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            title="Ver PDF"
+            onclick="verPdfEnvio(${envio.idEnvio})"
+        >
+            <i class="bi bi-file-earmark-pdf"></i>
+        </button>
+    `
+                    : `
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            title="PDF no disponible"
+            disabled
+        >
+            <i class="bi bi-file-earmark-x"></i>
+        </button>
+    `;
 
                 const fila =
                     document.createElement(
@@ -1088,7 +1492,6 @@
                         <div
                             class="d-flex justify-content-center gap-1 flex-wrap"
                         >
-                            ${botonDetalle}
                             ${botonPdf}
                             ${botonEnviar}
                             ${botonRecibir}
@@ -2612,48 +3015,90 @@
     /* =========================================================
        PDF
     ========================================================= */
+    async function verPdfEnvio(idGuia) {
 
-    async function verPdfEnvio(
-        idGuia
-    ) {
+        let urlTemporalPdf = null;
 
         try {
+            const envio = buscarEnvioPorId(idGuia);
 
-            const response =
-                await fetch(
-                    ENDPOINTS.pdfGuia(
-                        idGuia
-                    ),
-                    {
-                        method: "GET",
-
-                        headers: {
-                            Authorization:
-                                `Bearer ${obtenerToken()}`
-                        },
-
-                        cache: "no-store"
-                    }
-                );
-
-            if (!response.ok) {
-
-                const mensaje =
-                    await response.text();
-
+            if (!envio) {
                 throw new Error(
-                    mensaje ||
-                    "No se pudo obtener el PDF."
+                    "No se encontró el envío seleccionado."
                 );
             }
 
-            const blob =
-                await response.blob();
-
-            const urlPdf =
-                URL.createObjectURL(
-                    blob
+            if (
+                !envio.rutaPdf ||
+                String(envio.rutaPdf).trim() === ""
+            ) {
+                throw new Error(
+                    "Este envío no tiene un PDF disponible."
                 );
+            }
+
+            const url =
+                ENDPOINTS.pdfDocumento(
+                    envio.rutaPdf
+                );
+
+            console.log("ID envío:", idGuia);
+            console.log("Ruta PDF:", envio.rutaPdf);
+            console.log("URL PDF:", url);
+
+            const response = await fetch(url, {
+                method: "GET",
+
+                headers: {
+                    Accept: "application/pdf",
+                    Authorization:
+                        `Bearer ${obtenerToken()}`
+                },
+
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                const contentType =
+                    response.headers.get(
+                        "content-type"
+                    ) || "";
+
+                let mensaje;
+
+                if (
+                    contentType.includes(
+                        "application/json"
+                    )
+                ) {
+                    const error =
+                        await response.json();
+
+                    mensaje =
+                        error?.mensaje ||
+                        error?.message ||
+                        error?.error;
+                } else {
+                    mensaje =
+                        await response.text();
+                }
+
+                throw new Error(
+                    mensaje ||
+                    `No se pudo obtener el PDF. HTTP ${response.status}`
+                );
+            }
+
+            const blob = await response.blob();
+
+            if (blob.size === 0) {
+                throw new Error(
+                    "El PDF recibido está vacío."
+                );
+            }
+
+            urlTemporalPdf =
+                URL.createObjectURL(blob);
 
             const iframe =
                 document.getElementById(
@@ -2666,34 +3111,30 @@
                 );
 
             if (!iframe || !modal) {
-
-                URL.revokeObjectURL(
-                    urlPdf
-                );
-
                 throw new Error(
                     "No se encontró el visor del PDF."
                 );
             }
 
-            iframe.src =
-                urlPdf;
+            iframe.src = urlTemporalPdf;
 
             bootstrap.Modal
-                .getOrCreateInstance(
-                    modal
-                )
+                .getOrCreateInstance(modal)
                 .show();
 
             modal.addEventListener(
                 "hidden.bs.modal",
                 function limpiarPdf() {
 
-                    iframe.src = "";
+                    iframe.src = "about:blank";
 
-                    URL.revokeObjectURL(
-                        urlPdf
-                    );
+                    if (urlTemporalPdf) {
+                        URL.revokeObjectURL(
+                            urlTemporalPdf
+                        );
+
+                        urlTemporalPdf = null;
+                    }
 
                     modal.removeEventListener(
                         "hidden.bs.modal",
@@ -2703,13 +3144,23 @@
             );
 
         } catch (error) {
+            console.error(
+                "Error visualizando PDF:",
+                error
+            );
+
+            if (urlTemporalPdf) {
+                URL.revokeObjectURL(
+                    urlTemporalPdf
+                );
+            }
+
             mostrarToast(
                 obtenerMensajeError(error),
                 "danger"
             );
         }
     }
-
     /* =========================================================
        FILTROS
     ========================================================= */
@@ -3123,5 +3574,19 @@
 
     window.cargarEnvios =
         cargarEnvios;
+
+    window.addEventListener(
+        "beforeunload",
+        function () {
+
+            if (
+                clienteWebSocketEnvios &&
+                clienteWebSocketEnvios.active
+            ) {
+                clienteWebSocketEnvios
+                    .deactivate();
+            }
+        }
+    );
 
 })();

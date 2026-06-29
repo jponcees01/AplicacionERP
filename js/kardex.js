@@ -16,7 +16,7 @@ const ENDPOINTS_KARDEX = {
 let movimientosKardex = [];
 
 let paginaActualKardex = 0;
-let tamanioPaginaKardex = 10;
+let tamanioPaginaKardex = 5;
 let totalPaginasKardex = 0;
 let totalElementosKardex = 0;
 

@@ -4,35 +4,20 @@
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Inventario de productos</title>
 
     <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Bootstrap Icons -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- CSS propio -->
-    <link
-        rel="stylesheet"
-        href="../css/inventario.css"
-    >
+    <link rel="stylesheet" href="../css/inventario.css">
 
-    <link
-        rel="stylesheet"
-        href="../css/sesion.css"
-    >
+    <link rel="stylesheet" href="../css/sesion.css">
     <style>
         .solo-admin {
             display: none !important;
@@ -46,128 +31,92 @@
 
 <body>
 
-<div class="container-fluid">
+    <div class="container-fluid">
 
-    <div class="row">
+        <div class="row">
 
-        <!-- =====================================================
+            <!-- =====================================================
              SIDEBAR
         ====================================================== -->
-        <aside class="col-lg-2 sidebar p-4">
+            <aside class="col-lg-2 sidebar p-4">
 
-            <div class="sidebar-contenido">
+                <div class="sidebar-contenido">
 
-                <div>
+                    <div>
 
-                    <div class="d-flex align-items-center gap-2 mb-5">
+                        <div class="d-flex align-items-center gap-2 mb-5">
 
-                        <i class="bi bi-box-seam fs-3"></i>
+                            <i class="bi bi-box-seam fs-3"></i>
 
-                        <span class="sidebar-title fs-5">
-                            Mi Inventario
-                        </span>
+                            <span class="sidebar-title fs-5">
+                                Mi Inventario
+                            </span>
 
-                    </div>
+                        </div>
 
-                    <nav>
+                        <nav>
 
-                        <a
-                            href="dashboard.html"
-                            class="menu-item"
-                        >
-                            <i class="bi bi-speedometer2"></i>
-                            Dashboard
-                        </a>
+                            <a href="dashboard.html" class="menu-item">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
 
-                        <a
-                            href="productos.html"
-                            class="menu-item solo-admin"
-                        >
-                            <i class="bi bi-box"></i>
-                            Productos
-                        </a>
+                            <a href="productos.html" class="menu-item solo-admin">
+                                <i class="bi bi-box"></i>
+                                Productos
+                            </a>
 
-                        <a
-                            href="inventario.html"
-                            class="menu-item active"
-                        >
-                            <i class="bi bi-boxes"></i>
-                            Inventario
-                        </a>
+                            <a href="inventario.html" class="menu-item active">
+                                <i class="bi bi-boxes"></i>
+                                Inventario
+                            </a>
 
-                        <a
-                                href="kardex.html"
-                                class="menu-item"
-                            >
+                            <a href="kardex.html" class="menu-item">
                                 <i class="bi bi-journal-text"></i>
                                 Kardex
                             </a>
 
-                        <a
-                            href="solicitudStock.html"
-                            class="menu-item"
-                        >
-                            <i class="bi bi-clipboard-check"></i>
-                            Solicitud de stock
-                        </a>
+                            <a href="solicitudStock.html" class="menu-item">
+                                <i class="bi bi-clipboard-check"></i>
+                                Solicitud de stock
+                            </a>
 
-                        <a
-                            href="envios.html"
-                            class="menu-item"
-                        >
-                            <i class="bi bi-truck"></i>
-                            Envíos
-                        </a>
+                            <a href="envios.html" class="menu-item">
+                                <i class="bi bi-truck"></i>
+                                Envíos
+                            </a>
 
-                        <a
-                            href="devoluciones.html"
-                            class="menu-item"
-                        >
-                            <i class="bi bi-arrow-return-left"></i>
-                            Devoluciones
-                        </a>
+                            <a href="devoluciones.html" class="menu-item">
+                                <i class="bi bi-arrow-return-left"></i>
+                                Devoluciones
+                            </a>
 
-                        <a
-                            href="ventas.html"
-                            class="menu-item"
-                        >
-                            <i class="bi bi-cart-check"></i>
-                            Ventas
-                        </a>
+                            <a href="ventas.html" class="menu-item">
+                                <i class="bi bi-cart-check"></i>
+                                Ventas
+                            </a>
 
-                        <a
-                            href="usuarios.html"
-                            class="menu-item solo-admin"
-                        >
-                            <i class="bi bi-people"></i>
-                            Usuarios
-                        </a>
+                            <a href="usuarios.html" class="menu-item solo-admin">
+                                <i class="bi bi-people"></i>
+                                Usuarios
+                            </a>
 
-                        <a
-                            href="choferes.html"
-                            class="menu-item solo-admin"
-                        >
-                            <i class="bi bi-person-badge"></i>
-                            Choferes
-                        </a>
+                            <a href="choferes.html" class="menu-item solo-admin">
+                                <i class="bi bi-person-badge"></i>
+                                Choferes
+                            </a>
 
-                        <a
-                            href="vehiculos.html"
-                            class="menu-item solo-admin"
-                        >
-                            <i class="bi bi-truck-front"></i>
-                            Vehículos
-                        </a>
+                            <a href="vehiculos.html" class="menu-item solo-admin">
+                                <i class="bi bi-truck-front"></i>
+                                Vehículos
+                            </a>
 
-                        <a
-                            href="almacenes.html"
-                            class="menu-item solo-admin"
-                        >
-                            <i class="bi bi-buildings"></i>
-                            Almacenes
-                        </a>
+                            <a href="almacenes.html" class="menu-item solo-admin">
+                                <i class="bi bi-buildings"></i>
+                                Almacenes
+                            </a>
 
-                        <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
+                            <a href="alertas.html" class="menu-item menu-alertas solo-admin" id="menuAlertas"
                                 title="No tienes alertas nuevas">
                                 <i class="bi bi-bell"></i>
 
@@ -180,663 +129,552 @@
                                 </span>
                             </a>
 
-                        <a
-                            href="chatbot.html"
-                            class="menu-item"
-                        >
-                            <i class="bi bi-robot"></i>
-                            <span>Asistente IA</span>
-                        </a>
+                            <a href="chatbot.html" class="menu-item">
+                                <i class="bi bi-robot"></i>
+                                <span>Asistente IA</span>
+                            </a>
 
-                    </nav>
+                        </nav>
+
+                    </div>
+
+                    <!-- Usuario que inició sesión -->
+                    <div class="usuario-sesion">
+
+                        <div class="usuario-info">
+
+                            <div class="usuario-avatar" id="usuarioAvatar">
+                                U
+                            </div>
+
+                            <div class="usuario-datos">
+
+                                <strong id="nombreUsuarioSesion">
+                                    Usuario
+                                </strong>
+
+                                <small id="rolUsuarioSesion">
+                                    Sin rol
+                                </small>
+
+                                <span id="usernameSesion">
+                                    @usuario
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" class="btn-salir" onclick="cerrarSesion()">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Cerrar sesión
+                        </button>
+
+                    </div>
 
                 </div>
 
-                <!-- Usuario que inició sesión -->
-                <div class="usuario-sesion">
+            </aside>
 
-                    <div class="usuario-info">
+            <!-- =====================================================
+             CONTENIDO PRINCIPAL
+        ====================================================== -->
+            <main class="col-lg-10 px-0">
 
-                        <div
-                            class="usuario-avatar"
-                            id="usuarioAvatar"
-                        >
-                            U
-                        </div>
+                <!-- Cabecera -->
+                <header class="page-header px-4 py-3">
 
-                        <div class="usuario-datos">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
 
-                            <strong id="nombreUsuarioSesion">
-                                Usuario
-                            </strong>
+                        <div>
 
-                            <small id="rolUsuarioSesion">
-                                Sin rol
+                            <h4 class="fw-bold mb-1">
+                                Inventario de productos
+                            </h4>
+
+                            <small class="text-muted">
+                                Consulta el stock disponible y registra reabastecimientos.
                             </small>
 
-                            <span id="usernameSesion">
-                                @usuario
-                            </span>
+                        </div>
+
+                        <button type="button" class="btn btn-primary solo-admin" data-bs-toggle="modal"
+                            data-bs-target="#modalReabastecimiento" onclick="prepararReabastecimiento()">
+                            <i class="bi bi-box-arrow-in-down me-2"></i>
+                            Reabastecer productos
+                        </button>
+
+                    </div>
+
+                </header>
+
+                <div class="p-4">
+
+                    <!-- =================================================
+                     RESUMEN
+                ================================================== -->
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-4">
+
+                            <div class="card resumen-card">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-primary-subtle text-primary">
+                                        <i class="bi bi-boxes"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Total de productos
+                                        </small>
+
+                                        <h4 class="fw-bold mb-0" id="totalProductos">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <div class="card resumen-card">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-warning-subtle text-warning">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Productos con stock bajo
+                                        </small>
+
+                                        <h4 class="fw-bold mb-0" id="productosStockBajo">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <div class="card resumen-card">
+
+                                <div class="card-body d-flex align-items-center gap-3">
+
+                                    <div class="resumen-icono bg-danger-subtle text-danger">
+                                        <i class="bi bi-x-octagon"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted">
+                                            Productos agotados
+                                        </small>
+
+                                        <h4 class="fw-bold mb-0" id="productosSinStock">
+                                            0
+                                        </h4>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                    <button
-                        type="button"
-                        class="btn-salir"
-                        onclick="cerrarSesion()"
-                    >
-                        <i class="bi bi-box-arrow-right"></i>
-                        Cerrar sesión
-                    </button>
+                    <!-- =================================================
+                     BUSCADOR Y FILTROS
+                ================================================== -->
+                    <div class="card mb-4">
+
+                        <div class="card-body">
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-lg-7">
+
+                                    <label for="buscarProducto" class="form-label">
+                                        Buscar producto
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+
+                                        <input type="text" id="buscarProducto" class="form-control"
+                                            placeholder="Buscar por nombre, código, categoría o marca...">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3">
+
+                                    <label for="filtroStock" class="form-label">
+                                        Estado del stock
+                                    </label>
+
+                                    <select id="filtroStock" class="form-select">
+                                        <option value="todos">
+                                            Todos
+                                        </option>
+
+                                        <option value="disponible">
+                                            Disponible
+                                        </option>
+
+                                        <option value="bajo">
+                                            Stock bajo
+                                        </option>
+
+                                        <option value="agotado">
+                                            Agotado
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <div class="col-lg-2">
+
+                                    <button type="button" class="btn btn-outline-secondary w-100"
+                                        onclick="limpiarFiltros()">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                        Limpiar
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Cards de productos -->
+                    <div class="row g-4" id="contenedorProductos"></div>
+
+                    <!-- Sin resultados -->
+                    <div id="sinResultados" class="text-center py-5 d-none">
+
+                        <i class="bi bi-search fs-1 text-muted"></i>
+
+                        <h5 class="mt-3">
+                            No se encontraron productos
+                        </h5>
+
+                        <p class="text-muted">
+                            Intenta buscar con otro nombre, código o categoría.
+                        </p>
+
+                    </div>
+                    <!-- PAGINACIÓN -->
+                    <div id="contenedorPaginacion"
+                        class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+
+                        <small id="textoPaginacion" class="text-muted">
+                            Página 1 de 1
+                        </small>
+
+                        <nav aria-label="Paginación del inventario">
+
+                            <ul class="pagination pagination-sm mb-0">
+
+                                <li class="page-item disabled" id="itemPaginaAnterior">
+                                    <button type="button" class="page-link" onclick="cambiarPaginaInventario(-1)">
+                                        Anterior
+                                    </button>
+                                </li>
+
+                                <li class="page-item disabled">
+
+                                    <span class="page-link" id="paginaActual">
+                                        1
+                                    </span>
+
+                                </li>
+
+                                <li class="page-item disabled" id="itemPaginaSiguiente">
+                                    <button type="button" class="page-link" onclick="cambiarPaginaInventario(1)">
+                                        Siguiente
+                                    </button>
+                                </li>
+
+                            </ul>
+
+                        </nav>
+
+                    </div>
 
                 </div>
 
-            </div>
+            </main>
 
-        </aside>
+        </div>
 
-        <!-- =====================================================
-             CONTENIDO PRINCIPAL
-        ====================================================== -->
-        <main class="col-lg-10 px-0">
+    </div>
 
-            <!-- Cabecera -->
-            <header class="page-header px-4 py-3">
+    <!-- =========================================================
+     MODAL DE REABASTECIMIENTO
+========================================================= -->
+    <div class="modal fade" id="modalReabastecimiento" tabindex="-1" aria-labelledby="modalReabastecimientoLabel"
+        aria-hidden="true">
 
-                <div
-                    class="d-flex flex-wrap justify-content-between align-items-center gap-3"
-                >
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+            <div class="modal-content border-0 rounded-4">
+
+                <!-- Cabecera modal -->
+                <div class="modal-header">
 
                     <div>
 
-                        <h4 class="fw-bold mb-1">
-                            Inventario de productos
-                        </h4>
+                        <h5 class="modal-title fw-bold" id="modalReabastecimientoLabel">
+                            <i class="bi bi-box-arrow-in-down text-primary me-2"></i>
+                            Reabastecimiento de productos
+                        </h5>
 
                         <small class="text-muted">
-                            Consulta el stock disponible y registra reabastecimientos.
+                            Relaciona productos, variantes y unidades para agregarlos al inventario.
                         </small>
 
                     </div>
 
-                    <button
-                        type="button"
-                        class="btn btn-primary solo-admin"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalReabastecimiento"
-                        onclick="prepararReabastecimiento()"
-                    >
-                        <i class="bi bi-box-arrow-in-down me-2"></i>
-                        Reabastecer productos
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 
                 </div>
 
-            </header>
+                <div class="modal-body p-4">
 
-            <div class="p-4">
-
-                <!-- =================================================
-                     RESUMEN
-                ================================================== -->
-                <div class="row g-3 mb-4">
-
-                    <div class="col-md-4">
-
-                        <div class="card resumen-card">
-
-                            <div class="card-body d-flex align-items-center gap-3">
-
-                                <div class="resumen-icono bg-primary-subtle text-primary">
-                                    <i class="bi bi-boxes"></i>
-                                </div>
-
-                                <div>
-
-                                    <small class="text-muted">
-                                        Total de productos
-                                    </small>
-
-                                    <h4
-                                        class="fw-bold mb-0"
-                                        id="totalProductos"
-                                    >
-                                        0
-                                    </h4>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <div class="card resumen-card">
-
-                            <div class="card-body d-flex align-items-center gap-3">
-
-                                <div class="resumen-icono bg-warning-subtle text-warning">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                </div>
-
-                                <div>
-
-                                    <small class="text-muted">
-                                        Productos con stock bajo
-                                    </small>
-
-                                    <h4
-                                        class="fw-bold mb-0"
-                                        id="productosStockBajo"
-                                    >
-                                        0
-                                    </h4>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <div class="card resumen-card">
-
-                            <div class="card-body d-flex align-items-center gap-3">
-
-                                <div class="resumen-icono bg-danger-subtle text-danger">
-                                    <i class="bi bi-x-octagon"></i>
-                                </div>
-
-                                <div>
-
-                                    <small class="text-muted">
-                                        Productos agotados
-                                    </small>
-
-                                    <h4
-                                        class="fw-bold mb-0"
-                                        id="productosSinStock"
-                                    >
-                                        0
-                                    </h4>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- =================================================
-                     BUSCADOR Y FILTROS
-                ================================================== -->
-                <div class="card mb-4">
-
-                    <div class="card-body">
-
-                        <div class="row g-3 align-items-end">
-
-                            <div class="col-lg-7">
-
-                                <label
-                                    for="buscarProducto"
-                                    class="form-label"
-                                >
-                                    Buscar producto
-                                </label>
-
-                                <div class="input-group">
-
-                                    <span class="input-group-text bg-white">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-
-                                    <input
-                                        type="text"
-                                        id="buscarProducto"
-                                        class="form-control"
-                                        placeholder="Buscar por nombre, código, categoría o marca..."
-                                    >
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-lg-3">
-
-                                <label
-                                    for="filtroStock"
-                                    class="form-label"
-                                >
-                                    Estado del stock
-                                </label>
-
-                                <select
-                                    id="filtroStock"
-                                    class="form-select"
-                                >
-                                    <option value="todos">
-                                        Todos
-                                    </option>
-
-                                    <option value="disponible">
-                                        Disponible
-                                    </option>
-
-                                    <option value="bajo">
-                                        Stock bajo
-                                    </option>
-
-                                    <option value="agotado">
-                                        Agotado
-                                    </option>
-                                </select>
-
-                            </div>
-
-                            <div class="col-lg-2">
-
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-secondary w-100"
-                                    onclick="limpiarFiltros()"
-                                >
-                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
-                                    Limpiar
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Cards de productos -->
-                <div
-                    class="row g-4"
-                    id="contenedorProductos"
-                ></div>
-
-                <!-- Sin resultados -->
-                <div
-                    id="sinResultados"
-                    class="text-center py-5 d-none"
-                >
-
-                    <i class="bi bi-search fs-1 text-muted"></i>
-
-                    <h5 class="mt-3">
-                        No se encontraron productos
-                    </h5>
-
-                    <p class="text-muted">
-                        Intenta buscar con otro nombre, código o categoría.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </main>
-
-    </div>
-
-</div>
-
-<!-- =========================================================
-     MODAL DE REABASTECIMIENTO
-========================================================= -->
-<div
-    class="modal fade"
-    id="modalReabastecimiento"
-    tabindex="-1"
-    aria-labelledby="modalReabastecimientoLabel"
-    aria-hidden="true"
->
-
-    <div
-        class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"
-    >
-
-        <div class="modal-content border-0 rounded-4">
-
-            <!-- Cabecera modal -->
-            <div class="modal-header">
-
-                <div>
-
-                    <h5
-                        class="modal-title fw-bold"
-                        id="modalReabastecimientoLabel"
-                    >
-                        <i class="bi bi-box-arrow-in-down text-primary me-2"></i>
-                        Reabastecimiento de productos
-                    </h5>
-
-                    <small class="text-muted">
-                        Relaciona productos, variantes y unidades para agregarlos al inventario.
-                    </small>
-
-                </div>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Cerrar"
-                ></button>
-
-            </div>
-
-            <div class="modal-body p-4">
-
-                <!-- =================================================
+                    <!-- =================================================
                      SELECCIÓN DEL PRODUCTO
                 ================================================== -->
-                <div class="card border shadow-none mb-4">
+                    <div class="card border shadow-none mb-4">
 
-                    <div class="card-body">
+                        <div class="card-body">
 
-                        <div
-                            class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                            <div class="d-flex align-items-center justify-content-between mb-3">
 
-                            <div>
+                                <div>
+
+                                    <h6 class="fw-bold mb-1">
+                                        Agregar producto al inventario
+                                    </h6>
+
+                                    <small class="text-muted">
+                                        Selecciona el producto, su variante y la unidad de medida.
+                                    </small>
+
+                                </div>
+
+                                <span class="badge text-bg-primary">
+                                    Producto + variante + unidad
+                                </span>
+
+                            </div>
+
+                            <!-- Producto, variante y unidad -->
+                            <div class="row g-3">
+
+                                <div class="col-lg-4">
+
+                                    <label for="productoSeleccionado" class="form-label required">
+                                        Producto
+                                    </label>
+
+                                    <select id="productoSeleccionado" class="form-select"
+                                        onchange="cargarVariantesProducto()">
+                                        <option value="">
+                                            Seleccionar producto
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <div class="col-lg-4">
+
+                                    <label for="varianteSeleccionada" class="form-label required">
+                                        Variante
+                                    </label>
+
+                                    <select id="varianteSeleccionada" class="form-select" disabled>
+                                        <option value="">
+                                            Primero selecciona un producto
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                <div class="col-lg-4">
+
+                                    <label for="unidadSeleccionada" class="form-label required">
+                                        Unidad de medida
+                                    </label>
+
+                                    <select id="unidadSeleccionada" class="form-select">
+                                        <option value="">
+                                            Seleccionar unidad
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Cantidad y precios -->
+                            <div class="row g-3">
+
+                                <div class="col-lg-3">
+
+                                    <label for="cantidadProducto" class="form-label required">
+                                        Cantidad
+                                    </label>
+
+                                    <input type="number" id="cantidadProducto" class="form-control" min="1" step="1"
+                                        placeholder="0">
+
+                                </div>
+
+                                <div class="col-lg-3">
+
+                                    <label for="costoProducto" class="form-label required">
+                                        Costo unitario
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            S/
+                                        </span>
+
+                                        <input type="number" id="costoProducto" class="form-control" min="0" step="0.01"
+                                            placeholder="0.00">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3">
+
+                                    <label for="precioVentaProducto" class="form-label required">
+                                        Precio de venta
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            S/
+                                        </span>
+
+                                        <input type="number" id="precioVentaProducto" class="form-control" min="0"
+                                            step="0.01" placeholder="0.00">
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3">
+
+                                    <label for="subtotalProducto" class="form-label">
+                                        Subtotal
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            S/
+                                        </span>
+
+                                        <input type="text" id="subtotalProducto" class="form-control" value="0.00"
+                                            readonly>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Configuración de inventario -->
+                            <div class="mb-3">
 
                                 <h6 class="fw-bold mb-1">
-                                    Agregar producto al inventario
+                                    Configuración del inventario
                                 </h6>
 
                                 <small class="text-muted">
-                                    Selecciona el producto, su variante y la unidad de medida.
+                                    Estos valores se utilizarán si el producto todavía no existe en el almacén.
                                 </small>
 
                             </div>
 
-                            <span class="badge text-bg-primary">
-                                Producto + variante + unidad
-                            </span>
+                            <div class="row g-3 align-items-end">
 
-                        </div>
+                                <div class="col-lg-3">
 
-                        <!-- Producto, variante y unidad -->
-                        <div class="row g-3">
+                                    <label for="stockMinimoProducto" class="form-label required">
+                                        Stock mínimo
+                                    </label>
 
-                            <div class="col-lg-4">
-
-                                <label
-                                    for="productoSeleccionado"
-                                    class="form-label required"
-                                >
-                                    Producto
-                                </label>
-
-                                <select
-                                    id="productoSeleccionado"
-                                    class="form-select"
-                                    onchange="cargarVariantesProducto()"
-                                >
-                                    <option value="">
-                                        Seleccionar producto
-                                    </option>
-                                </select>
-
-                            </div>
-
-                            <div class="col-lg-4">
-
-                                <label
-                                    for="varianteSeleccionada"
-                                    class="form-label required"
-                                >
-                                    Variante
-                                </label>
-
-                                <select
-                                    id="varianteSeleccionada"
-                                    class="form-select"
-                                    disabled
-                                >
-                                    <option value="">
-                                        Primero selecciona un producto
-                                    </option>
-                                </select>
-
-                            </div>
-
-                            <div class="col-lg-4">
-
-                                <label
-                                    for="unidadSeleccionada"
-                                    class="form-label required"
-                                >
-                                    Unidad de medida
-                                </label>
-
-                                <select
-                                    id="unidadSeleccionada"
-                                    class="form-select"
-                                >
-                                    <option value="">
-                                        Seleccionar unidad
-                                    </option>
-                                </select>
-
-                            </div>
-
-                        </div>
-
-                        <hr class="my-4">
-
-                        <!-- Cantidad y precios -->
-                        <div class="row g-3">
-
-                            <div class="col-lg-3">
-
-                                <label
-                                    for="cantidadProducto"
-                                    class="form-label required"
-                                >
-                                    Cantidad
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="cantidadProducto"
-                                    class="form-control"
-                                    min="1"
-                                    step="1"
-                                    placeholder="0"
-                                >
-
-                            </div>
-
-                            <div class="col-lg-3">
-
-                                <label
-                                    for="costoProducto"
-                                    class="form-label required"
-                                >
-                                    Costo unitario
-                                </label>
-
-                                <div class="input-group">
-
-                                    <span class="input-group-text">
-                                        S/
-                                    </span>
-
-                                    <input
-                                        type="number"
-                                        id="costoProducto"
-                                        class="form-control"
-                                        min="0"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                    >
+                                    <input type="number" id="stockMinimoProducto" class="form-control" min="0" step="1"
+                                        value="5">
 
                                 </div>
 
-                            </div>
+                                <div class="col-lg-3">
 
-                            <div class="col-lg-3">
+                                    <label for="stockMaximoProducto" class="form-label required">
+                                        Stock máximo
+                                    </label>
 
-                                <label
-                                    for="precioVentaProducto"
-                                    class="form-label required"
-                                >
-                                    Precio de venta
-                                </label>
-
-                                <div class="input-group">
-
-                                    <span class="input-group-text">
-                                        S/
-                                    </span>
-
-                                    <input
-                                        type="number"
-                                        id="precioVentaProducto"
-                                        class="form-control"
-                                        min="0"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                    >
+                                    <input type="number" id="stockMaximoProducto" class="form-control" min="1" step="1"
+                                        value="100">
 
                                 </div>
 
-                            </div>
+                                <div class="col-lg-3">
 
-                            <div class="col-lg-3">
+                                    <label for="puntoReordenProducto" class="form-label required">
+                                        Punto de reorden
+                                    </label>
 
-                                <label
-                                    for="subtotalProducto"
-                                    class="form-label"
-                                >
-                                    Subtotal
-                                </label>
-
-                                <div class="input-group">
-
-                                    <span class="input-group-text">
-                                        S/
-                                    </span>
-
-                                    <input
-                                        type="text"
-                                        id="subtotalProducto"
-                                        class="form-control"
-                                        value="0.00"
-                                        readonly
-                                    >
+                                    <input type="number" id="puntoReordenProducto" class="form-control" min="0" step="1"
+                                        value="20">
 
                                 </div>
 
-                            </div>
+                                <div class="col-lg-3">
 
-                        </div>
+                                    <button type="button" id="btnAgregarProducto" class="btn btn-primary w-100"
+                                        onclick="agregarProductoReabastecimiento()">
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        Agregar al detalle
+                                    </button>
 
-                        <hr class="my-4">
-
-                        <!-- Configuración de inventario -->
-                        <div class="mb-3">
-
-                            <h6 class="fw-bold mb-1">
-                                Configuración del inventario
-                            </h6>
-
-                            <small class="text-muted">
-                                Estos valores se utilizarán si el producto todavía no existe en el almacén.
-                            </small>
-
-                        </div>
-
-                        <div class="row g-3 align-items-end">
-
-                            <div class="col-lg-3">
-
-                                <label
-                                    for="stockMinimoProducto"
-                                    class="form-label required"
-                                >
-                                    Stock mínimo
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="stockMinimoProducto"
-                                    class="form-control"
-                                    min="0"
-                                    step="1"
-                                    value="5"
-                                >
-
-                            </div>
-
-                            <div class="col-lg-3">
-
-                                <label
-                                    for="stockMaximoProducto"
-                                    class="form-label required"
-                                >
-                                    Stock máximo
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="stockMaximoProducto"
-                                    class="form-control"
-                                    min="1"
-                                    step="1"
-                                    value="100"
-                                >
-
-                            </div>
-
-                            <div class="col-lg-3">
-
-                                <label
-                                    for="puntoReordenProducto"
-                                    class="form-label required"
-                                >
-                                    Punto de reorden
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="puntoReordenProducto"
-                                    class="form-control"
-                                    min="0"
-                                    step="1"
-                                    value="20"
-                                >
-
-                            </div>
-
-                            <div class="col-lg-3">
-
-                                <button
-                                    type="button"
-                                    id="btnAgregarProducto"
-                                    class="btn btn-primary w-100"
-                                    onclick="agregarProductoReabastecimiento()"
-                                >
-                                    <i class="bi bi-plus-circle me-2"></i>
-                                    Agregar al detalle
-                                </button>
+                                </div>
 
                             </div>
 
@@ -844,141 +682,116 @@
 
                     </div>
 
-                </div>
-
-                <!-- =================================================
+                    <!-- =================================================
                      DETALLE DEL REABASTECIMIENTO
                 ================================================== -->
-                <div class="table-responsive border rounded">
+                    <div class="table-responsive border rounded">
 
-                    <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0">
 
-                        <thead class="table-light">
+                            <thead class="table-light">
 
-                        <tr>
-                            <th>Producto</th>
-                            <th>Variante</th>
-                            <th>Unidad</th>
-                            <th class="text-center">Cantidad</th>
-                            <th class="text-end">Costo</th>
-                            <th class="text-end">Precio venta</th>
-                            <th class="text-center">Stock mín.</th>
-                            <th class="text-center">Stock máx.</th>
-                            <th class="text-center">Reorden</th>
-                            <th class="text-end">Subtotal</th>
-                            <th class="text-center">Acción</th>
-                        </tr>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Variante</th>
+                                    <th>Unidad</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">Costo</th>
+                                    <th class="text-end">Precio venta</th>
+                                    <th class="text-center">Stock mín.</th>
+                                    <th class="text-center">Stock máx.</th>
+                                    <th class="text-center">Reorden</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
 
-                        </thead>
+                            </thead>
 
-                        <tbody id="tablaReabastecimiento">
+                            <tbody id="tablaReabastecimiento">
 
-                        <tr id="filaSinProductos">
+                                <tr id="filaSinProductos">
 
-                            <td
-                                colspan="11"
-                                class="text-center py-5 text-muted"
-                            >
-                                <i class="bi bi-cart-plus fs-1 d-block mb-2"></i>
-                                Todavía no has agregado productos.
-                            </td>
+                                    <td colspan="11" class="text-center py-5 text-muted">
+                                        <i class="bi bi-cart-plus fs-1 d-block mb-2"></i>
+                                        Todavía no has agregado productos.
+                                    </td>
 
-                        </tr>
+                                </tr>
 
-                        </tbody>
+                            </tbody>
 
-                        <tfoot>
+                            <tfoot>
 
-                        <tr class="table-light">
+                                <tr class="table-light">
 
-                            <td
-                                colspan="9"
-                                class="text-end fw-bold"
-                            >
-                                Total:
-                            </td>
+                                    <td colspan="9" class="text-end fw-bold">
+                                        Total:
+                                    </td>
 
-                            <td
-                                class="fw-bold text-end"
-                                id="totalReabastecimiento"
-                            >
-                                S/ 0.00
-                            </td>
+                                    <td class="fw-bold text-end" id="totalReabastecimiento">
+                                        S/ 0.00
+                                    </td>
 
-                            <td></td>
+                                    <td></td>
 
-                        </tr>
+                                </tr>
 
-                        </tfoot>
+                            </tfoot>
 
-                    </table>
+                        </table>
 
-                </div>
+                    </div>
 
-                <!-- =================================================
+                    <!-- =================================================
                      INFORMACIÓN GENERAL
                 ================================================== -->
-                <div class="row g-3 mt-3">
+                    <div class="row g-3 mt-3">
 
-                    <div class="col-md-5">
+                        <div class="col-md-5">
 
-                        <label
-                            for="proveedor"
-                            class="form-label"
-                        >
-                            Proveedor
-                        </label>
+                            <label for="proveedor" class="form-label">
+                                Proveedor
+                            </label>
 
-                        <input
-                            type="text"
-                            id="proveedor"
-                            class="form-control"
-                            placeholder="Nombre del proveedor"
-                            maxlength="150"
-                        >
+                            <input type="text" id="proveedor" class="form-control" placeholder="Nombre del proveedor"
+                                maxlength="150">
 
-                    </div>
+                        </div>
 
-                    <div class="col-md-7">
+                        <div class="col-md-7">
 
-                        <label
-                            for="observacion"
-                            class="form-label"
-                        >
-                            Observación
-                        </label>
+                            <label for="observacion" class="form-label">
+                                Observación
+                            </label>
 
-                        <textarea
-                            id="observacion"
-                            class="form-control"
-                            rows="2"
-                            maxlength="500"
-                            placeholder="Observación general del reabastecimiento"
-                        ></textarea>
+                            <textarea id="observacion" class="form-control" rows="2" maxlength="500"
+                                placeholder="Observación general del reabastecimiento"></textarea>
+
+                        </div>
 
                     </div>
 
-                </div>
+                    <!-- Explicación del proceso -->
+                    <div class="alert alert-info mt-4 mb-0">
 
-                <!-- Explicación del proceso -->
-                <div class="alert alert-info mt-4 mb-0">
+                        <div class="d-flex gap-3">
 
-                    <div class="d-flex gap-3">
+                            <i class="bi bi-info-circle fs-4"></i>
 
-                        <i class="bi bi-info-circle fs-4"></i>
+                            <div>
 
-                        <div>
+                                <strong>
+                                    ¿Qué ocurre al confirmar?
+                                </strong>
 
-                            <strong>
-                                ¿Qué ocurre al confirmar?
-                            </strong>
+                                <div class="small mt-1">
 
-                            <div class="small mt-1">
+                                    Se relacionará la variante con la unidad de medida,
+                                    se creará el registro en <code>producto_unidad</code>,
+                                    se agregará al inventario del almacén y se registrará
+                                    el ingreso en el kardex.
 
-                                Se relacionará la variante con la unidad de medida,
-                                se creará el registro en <code>producto_unidad</code>,
-                                se agregará al inventario del almacén y se registrará
-                                el ingreso en el kardex.
+                                </div>
 
                             </div>
 
@@ -988,28 +801,20 @@
 
                 </div>
 
-            </div>
+                <!-- Pie del modal -->
+                <div class="modal-footer">
 
-            <!-- Pie del modal -->
-            <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
 
-                <button
-                    type="button"
-                    class="btn btn-outline-secondary"
-                    data-bs-dismiss="modal"
-                >
-                    Cancelar
-                </button>
+                    <button type="button" id="btnConfirmarReabastecimiento" class="btn btn-success"
+                        onclick="confirmarReabastecimiento()">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Confirmar reabastecimiento
+                    </button>
 
-                <button
-                    type="button"
-                    id="btnConfirmarReabastecimiento"
-                    class="btn btn-success"
-                    onclick="confirmarReabastecimiento()"
-                >
-                    <i class="bi bi-check-circle me-2"></i>
-                    Confirmar reabastecimiento
-                </button>
+                </div>
 
             </div>
 
@@ -1017,55 +822,40 @@
 
     </div>
 
-</div>
-
-<!-- =========================================================
+    <!-- =========================================================
      TOAST
 ========================================================= -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
 
-    <div
-        id="toastMensaje"
-        class="toast align-items-center text-bg-success border-0"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-    >
+        <div id="toastMensaje" class="toast align-items-center text-bg-success border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
 
-        <div class="d-flex">
+            <div class="d-flex">
 
-            <div
-                class="toast-body"
-                id="textoToast"
-            >
-                Operación realizada correctamente.
+                <div class="toast-body" id="textoToast">
+                    Operación realizada correctamente.
+                </div>
+
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Cerrar"></button>
+
             </div>
-
-            <button
-                type="button"
-                class="btn-close btn-close-white me-2 m-auto"
-                data-bs-dismiss="toast"
-                aria-label="Cerrar"
-            ></button>
 
         </div>
 
     </div>
 
-</div>
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Bootstrap -->
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-></script>
-
-<!-- Configuración -->
-<script src="../js/config.js"></script>
-<script src="../js/permisos.js"></script>
-<!-- JavaScript propio -->
-<script src="../js/inventario.js"></script>
-<script src="../js/alertas-global.js"></script>
-<script src="../js/sesion.js"></script>
+    <!-- Configuración -->
+    <script src="../js/config.js"></script>
+    <script src="../js/renovar-sesion.js"></script>
+    <script src="../js/permisos.js"></script>
+    <!-- JavaScript propio -->
+    <script src="../js/inventario.js"></script>
+    <script src="../js/alertas-global.js"></script>
+    <script src="../js/sesion.js"></script>
 
 </body>
 

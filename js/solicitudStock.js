@@ -39,8 +39,24 @@
         anularSolicitud:
             `${CONFIG.API_URL}/envios/anular`,
 
-        pdfSolicitud: (idSolicitud) =>
-            `${CONFIG.API_URL}/solicitudes-stock/${idSolicitud}/pdf`
+        pdfSolicitud: function (rutaPdf) {
+
+            const rutaLimpia =
+                String(rutaPdf ?? "")
+                    .trim()
+                    .replaceAll("\\", "/")
+                    .replace(/^\/+/, "");
+
+            const rutaCodificada =
+                rutaLimpia
+                    .split("/")
+                    .map(function (segmento) {
+                        return encodeURIComponent(segmento);
+                    })
+                    .join("/");
+
+            return `${CONFIG.API_URL}/documentos/${rutaCodificada}`;
+        }
     };
 
     /* =========================================================
@@ -51,10 +67,19 @@
     let detalleSolicitud = [];
     let solicitudesRegistradas = [];
 
+    let paginaActualServidor = 0;
+    let totalPaginasServidor = 0;
+    let totalElementosServidor = 0;
+
+    const tamanioPagina = 5;
+
+    let temporizadorBusqueda = null;
     let nombreAlmacenSolicitante = "";
 
     let idSolicitudAprobarSeleccionada = null;
     let idSolicitudAnularSeleccionada = null;
+    let clienteWebSocketSolicitudes = null;
+    let suscripcionWebSocketSolicitudes = null;
 
     /* =========================================================
        INICIALIZACIÓN
@@ -75,6 +100,7 @@
 
             await cargarAlmacenesOrigen();
             await cargarSolicitudes();
+            conectarWebSocketSolicitudes();
 
         } catch (error) {
 
@@ -90,20 +116,306 @@
         }
     }
 
+    /* =========================================================
+   WEBSOCKET SOLICITUDES
+========================================================= */
+
+    function conectarWebSocketSolicitudes() {
+
+        const idAlmacen =
+            obtenerIdAlmacenSesion();
+
+        if (
+            !Number.isFinite(idAlmacen) ||
+            idAlmacen <= 0
+        ) {
+
+            console.warn(
+                "No se inició WebSocket de solicitudes: almacén inválido."
+            );
+
+            return;
+        }
+
+        if (
+            typeof SockJS === "undefined" ||
+            typeof StompJs === "undefined"
+        ) {
+
+            console.error(
+                "SockJS o StompJs no están cargados."
+            );
+
+            return;
+        }
+
+        if (
+            clienteWebSocketSolicitudes &&
+            clienteWebSocketSolicitudes.active
+        ) {
+            return;
+        }
+
+        clienteWebSocketSolicitudes =
+            new StompJs.Client({
+
+                webSocketFactory:
+                    function () {
+
+                        return new SockJS(
+                            CONFIG.WS_URL
+                        );
+                    },
+
+                reconnectDelay:
+                    5000,
+
+                heartbeatIncoming:
+                    10000,
+
+                heartbeatOutgoing:
+                    10000,
+
+                debug:
+                    function (mensaje) {
+
+                        console.log(
+                            "[STOMP SOLICITUDES]",
+                            mensaje
+                        );
+                    }
+            });
+
+        clienteWebSocketSolicitudes.onConnect =
+            function () {
+
+                console.log(
+                    "WebSocket de solicitudes conectado correctamente."
+                );
+
+                suscribirseCanalSolicitudes(
+                    idAlmacen
+                );
+            };
+
+        clienteWebSocketSolicitudes.onStompError =
+            function (frame) {
+
+                console.error(
+                    "Error STOMP solicitudes:",
+                    frame.headers?.message
+                );
+
+                console.error(
+                    frame.body
+                );
+            };
+
+        clienteWebSocketSolicitudes.onWebSocketError =
+            function (error) {
+
+                console.error(
+                    "Error WebSocket solicitudes:",
+                    error
+                );
+            };
+
+        clienteWebSocketSolicitudes.onWebSocketClose =
+            function () {
+
+                console.warn(
+                    "WebSocket de solicitudes desconectado."
+                );
+            };
+
+        clienteWebSocketSolicitudes.activate();
+    }
+
+    function suscribirseCanalSolicitudes(
+        idAlmacen
+    ) {
+
+        if (
+            !clienteWebSocketSolicitudes ||
+            !clienteWebSocketSolicitudes.connected
+        ) {
+            return;
+        }
+
+        if (suscripcionWebSocketSolicitudes) {
+
+            suscripcionWebSocketSolicitudes
+                .unsubscribe();
+
+            suscripcionWebSocketSolicitudes =
+                null;
+        }
+
+        const canal =
+            `/topic/solicitudes/almacen/${idAlmacen}`;
+
+        suscripcionWebSocketSolicitudes =
+            clienteWebSocketSolicitudes.subscribe(
+                canal,
+                procesarEventoWebSocketSolicitud
+            );
+
+        console.log(
+            "Suscrito al canal:",
+            canal
+        );
+    }
+
+    async function procesarEventoWebSocketSolicitud(
+        mensaje
+    ) {
+
+        try {
+
+            const evento =
+                JSON.parse(
+                    mensaje.body
+                );
+
+            console.log(
+                "Evento WebSocket de solicitud recibido:",
+                evento
+            );
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        500
+                    )
+            );
+
+            paginaActualServidor = 0;
+
+            await cargarSolicitudes();
+
+            mostrarMensajeWebSocketSolicitud(
+                evento
+            );
+
+            if (
+                typeof actualizarAlertasGlobales ===
+                "function"
+            ) {
+                actualizarAlertasGlobales();
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Error procesando evento WebSocket de solicitud:",
+                error
+            );
+        }
+    }
+
+    function mostrarMensajeWebSocketSolicitud(
+        evento
+    ) {
+
+        const accion =
+            String(
+                evento?.accion || ""
+            )
+                .trim()
+                .toUpperCase();
+
+        let mensaje =
+            evento?.mensaje ||
+            "Se actualizó una solicitud.";
+
+        let tipo =
+            "info";
+
+        switch (accion) {
+
+            case "SOLICITUD_CREADA":
+
+                mensaje =
+                    "Se creó una nueva solicitud de stock.";
+
+                tipo =
+                    "success";
+
+                break;
+
+            case "SOLICITUD_PROCESADA":
+
+                mensaje =
+                    "La solicitud fue aprobada y procesada.";
+
+                tipo =
+                    "success";
+
+                break;
+
+            case "SOLICITUD_ANULADA":
+
+                mensaje =
+                    "La solicitud fue anulada.";
+
+                tipo =
+                    "danger";
+
+                break;
+
+            case "ENVIO_GENERADO_DESDE_SOLICITUD":
+
+                mensaje =
+                    "Se generó un envío desde la solicitud.";
+
+                tipo =
+                    "success";
+
+                break;
+        }
+
+        mostrarToast(
+            mensaje,
+            tipo
+        );
+    }
+
     function configurarEventos() {
 
         document
             .getElementById("buscarSolicitud")
             ?.addEventListener(
                 "input",
-                filtrarSolicitudes
+                function () {
+
+                    clearTimeout(
+                        temporizadorBusqueda
+                    );
+
+                    temporizadorBusqueda =
+                        setTimeout(
+                            function () {
+
+                                paginaActualServidor = 0;
+
+                                cargarSolicitudes();
+                            },
+                            400
+                        );
+                }
             );
 
         document
             .getElementById("filtroEstado")
             ?.addEventListener(
                 "change",
-                filtrarSolicitudes
+                function () {
+
+                    paginaActualServidor = 0;
+
+                    cargarSolicitudes();
+                }
             );
 
         document
@@ -295,53 +607,178 @@
 
     async function cargarSolicitudes() {
 
+        const buscar =
+            document
+                .getElementById(
+                    "buscarSolicitud"
+                )
+                ?.value
+                ?.trim() || "";
+
+        const estado =
+            document
+                .getElementById(
+                    "filtroEstado"
+                )
+                ?.value || "";
+
+        const fechaInicio =
+            document
+                .getElementById(
+                    "fechaInicio"
+                )
+                ?.value || "";
+
+        const fechaFin =
+            document
+                .getElementById(
+                    "fechaFin"
+                )
+                ?.value || "";
+
+        if (
+            fechaInicio &&
+            fechaFin &&
+            fechaInicio > fechaFin
+        ) {
+
+            mostrarToast(
+                "La fecha inicial no puede ser mayor que la fecha final.",
+                "warning"
+            );
+
+            return;
+        }
+
+        const parametros =
+            new URLSearchParams();
+
+        const idAlmacen =
+            obtenerIdAlmacenSesion();
+
+        if (idAlmacen > 0) {
+
+            parametros.set(
+                "idAlmacen",
+                String(idAlmacen)
+            );
+        }
+
+        if (buscar) {
+
+            parametros.set(
+                "buscar",
+                buscar
+            );
+        }
+
+        /*
+         * Tu repository actualmente no recibe estado como parámetro
+         * independiente. Se envía como búsqueda únicamente si quieres
+         * mantener el filtro actual.
+         */
+        if (
+            estado &&
+            estado !== "todos"
+        ) {
+
+            parametros.set(
+                "buscar",
+                estado
+            );
+        }
+
+        if (fechaInicio) {
+
+            parametros.set(
+                "fechaInicio",
+                fechaInicio
+            );
+        }
+
+        if (fechaFin) {
+
+            parametros.set(
+                "fechaFin",
+                fechaFin
+            );
+        }
+
+        parametros.set(
+            "page",
+            String(paginaActualServidor)
+        );
+
+        parametros.set(
+            "size",
+            String(tamanioPagina)
+        );
+
         try {
 
             const respuesta =
                 await realizarPeticion(
-                    ENDPOINTS.solicitudes
+                    `${ENDPOINTS.solicitudes}?${parametros.toString()}`
                 );
 
-            const idAlmacenSesion =
-                obtenerIdAlmacenSesion();
-
             solicitudesRegistradas =
-                obtenerListaRespuesta(respuesta)
-                    .map(normalizarSolicitud)
-                    .filter(
-                        function (solicitud) {
+                obtenerListaRespuesta(
+                    respuesta
+                ).map(
+                    normalizarSolicitud
+                );
 
-                            return (
-                                solicitud.idAlmacenOrigen ===
-                                idAlmacenSesion ||
-                                solicitud.idAlmacenDestino ===
-                                idAlmacenSesion
-                            );
-                        }
-                    );
+            paginaActualServidor =
+                Number(
+                    respuesta?.number ??
+                    paginaActualServidor
+                );
 
-            console.log(
-                "Solicitudes visibles:",
-                solicitudesRegistradas
-            );
+            totalPaginasServidor =
+                Number(
+                    respuesta?.totalPages ??
+                    (
+                        solicitudesRegistradas.length > 0
+                            ? 1
+                            : 0
+                    )
+                );
+
+            totalElementosServidor =
+                Number(
+                    respuesta?.totalElements ??
+                    solicitudesRegistradas.length
+                );
 
             renderizarSolicitudes(
                 solicitudesRegistradas
             );
 
-            actualizarResumen();
+            actualizarPaginacionSolicitudes();
+
+            await actualizarResumen();
 
         } catch (error) {
 
             solicitudesRegistradas = [];
 
-            renderizarSolicitudes(
-                solicitudesRegistradas
+            paginaActualServidor = 0;
+            totalPaginasServidor = 0;
+            totalElementosServidor = 0;
+
+            renderizarSolicitudes([]);
+
+            actualizarPaginacionSolicitudes();
+
+            console.error(
+                "Error cargando solicitudes:",
+                error
             );
 
-            actualizarResumen();
-
-            throw error;
+            mostrarToast(
+                obtenerMensajeError(error),
+                "danger"
+            );
         }
     }
 
@@ -406,7 +843,12 @@
                 item.idAlmacen ??
                 item.idalmacen ??
                 0
-            )
+            ),
+            rutaPdf:
+                item.rutaPdf ??
+                item.rutapdf ??
+                item.ruta_pdf ??
+                null
         };
     }
 
@@ -1469,8 +1911,16 @@
                     idAlmacenSesion;
 
                 const puedeVerPdf =
-                    esOrigen ||
-                    esDestino;
+                    (
+                        esOrigen ||
+                        esDestino
+                    ) &&
+                    solicitud.rutaPdf &&
+                    String(
+                        solicitud.rutaPdf
+                    )
+                        .toLowerCase()
+                        .endsWith(".pdf");
 
                 const puedeDecidir =
                     esOrigen &&
@@ -1480,20 +1930,25 @@
                 const botonPdf =
                     puedeVerPdf
                         ? `
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-secondary"
-                                title="Ver PDF"
-                                onclick="
-                                    verPdfSolicitud(
-                                        ${solicitud.id}
-                                    )
-                                "
-                            >
-                                <i class="bi bi-file-earmark-pdf"></i>
-                            </button>
-                        `
-                        : "";
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                title="Ver PDF"
+                onclick="verPdfSolicitud(${solicitud.id})"
+            >
+                <i class="bi bi-file-earmark-pdf"></i>
+            </button>
+        `
+                        : `
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                title="PDF no disponible"
+                disabled
+            >
+                <i class="bi bi-file-earmark-x"></i>
+            </button>
+        `;
 
                 const botonesDecision =
                     puedeDecidir
@@ -2237,83 +2692,163 @@
     /* =========================================================
        PREVIEW DEL PDF
     ========================================================= */
+    async function verPdfSolicitud(
+        idSolicitud
+    ) {
 
-    async function verPdfSolicitud(idSolicitud) {
-
-        const solicitud =
-            buscarSolicitudPorId(
-                idSolicitud
-            );
-
-        const idAlmacenSesion =
-            obtenerIdAlmacenSesion();
-
-        if (!solicitud) {
-
-            mostrarToast(
-                "No se encontró la solicitud.",
-                "danger"
-            );
-
-            return;
-        }
-
-        const perteneceAlOrigen =
-            solicitud.idAlmacenOrigen ===
-            idAlmacenSesion;
-
-        const perteneceAlDestino =
-            solicitud.idAlmacenDestino ===
-            idAlmacenSesion;
-
-        if (
-            !perteneceAlOrigen &&
-            !perteneceAlDestino
-        ) {
-
-            mostrarToast(
-                "No tienes permiso para ver este PDF.",
-                "danger"
-            );
-
-            return;
-        }
+        let urlTemporalPdf = null;
 
         try {
 
+            const solicitud =
+                buscarSolicitudPorId(
+                    idSolicitud
+                );
+
+            if (!solicitud) {
+
+                throw new Error(
+                    "No se encontró la solicitud."
+                );
+            }
+
+            const idAlmacenSesion =
+                obtenerIdAlmacenSesion();
+
+            const perteneceAlOrigen =
+                solicitud.idAlmacenOrigen ===
+                idAlmacenSesion;
+
+            const perteneceAlDestino =
+                solicitud.idAlmacenDestino ===
+                idAlmacenSesion;
+
+            if (
+                !perteneceAlOrigen &&
+                !perteneceAlDestino
+            ) {
+
+                throw new Error(
+                    "No tienes permiso para ver este PDF."
+                );
+            }
+
+            const rutaPdf =
+                solicitud.rutaPdf ??
+                solicitud.rutapdf ??
+                solicitud.ruta_pdf ??
+                null;
+
+            if (
+                !rutaPdf ||
+                !String(rutaPdf)
+                    .toLowerCase()
+                    .endsWith(".pdf")
+            ) {
+
+                throw new Error(
+                    "Esta solicitud no tiene un PDF válido."
+                );
+            }
+
+            const token =
+                obtenerToken();
+
+            if (!token) {
+
+                throw new Error(
+                    "No se encontró el token de acceso."
+                );
+            }
+
+            const url =
+                ENDPOINTS.pdfSolicitud(
+                    rutaPdf
+                );
+
+            console.log(
+                "Ruta PDF solicitud:",
+                rutaPdf
+            );
+
+            console.log(
+                "URL PDF solicitud:",
+                url
+            );
+
             const response =
                 await fetch(
-                    ENDPOINTS.pdfSolicitud(
-                        idSolicitud
-                    ),
+                    url,
                     {
                         method: "GET",
 
                         headers: {
+                            Accept:
+                                "application/pdf",
+
                             Authorization:
-                                `Bearer ${obtenerToken()}`
+                                `Bearer ${token}`
                         },
 
-                        cache: "no-store"
+                        cache:
+                            "no-store"
                     }
                 );
 
             if (!response.ok) {
 
-                const mensaje =
-                    await response.text();
+                const contentType =
+                    response.headers.get(
+                        "content-type"
+                    ) || "";
+
+                let mensaje =
+                    "No se pudo cargar el PDF.";
+
+                if (
+                    contentType.includes(
+                        "application/json"
+                    )
+                ) {
+
+                    const error =
+                        await response.json();
+
+                    mensaje =
+                        error?.mensaje ||
+                        error?.message ||
+                        error?.error ||
+                        mensaje;
+
+                } else {
+
+                    const texto =
+                        await response.text();
+
+                    if (texto?.trim()) {
+                        mensaje = texto;
+                    }
+                }
 
                 throw new Error(
-                    mensaje ||
-                    "No se pudo cargar el PDF."
+                    mensaje
                 );
             }
 
             const blob =
                 await response.blob();
 
-            const urlPdf =
-                URL.createObjectURL(blob);
+            if (blob.size === 0) {
+
+                throw new Error(
+                    "El archivo PDF está vacío."
+                );
+            }
+
+            urlTemporalPdf =
+                URL.createObjectURL(
+                    blob
+                );
 
             const iframe =
                 document.getElementById(
@@ -2327,30 +2862,35 @@
 
             if (!iframe || !modal) {
 
-                URL.revokeObjectURL(
-                    urlPdf
-                );
-
                 throw new Error(
-                    "No se encontró el modal del PDF."
+                    "No se encontró el visor del PDF."
                 );
             }
 
-            iframe.src = urlPdf;
+            iframe.src =
+                urlTemporalPdf;
 
             bootstrap.Modal
-                .getOrCreateInstance(modal)
+                .getOrCreateInstance(
+                    modal
+                )
                 .show();
 
             modal.addEventListener(
                 "hidden.bs.modal",
                 function limpiarPreview() {
 
-                    iframe.src = "";
+                    iframe.src =
+                        "about:blank";
 
-                    URL.revokeObjectURL(
-                        urlPdf
-                    );
+                    if (urlTemporalPdf) {
+
+                        URL.revokeObjectURL(
+                            urlTemporalPdf
+                        );
+
+                        urlTemporalPdf = null;
+                    }
 
                     modal.removeEventListener(
                         "hidden.bs.modal",
@@ -2365,6 +2905,13 @@
                 "Error mostrando PDF:",
                 error
             );
+
+            if (urlTemporalPdf) {
+
+                URL.revokeObjectURL(
+                    urlTemporalPdf
+                );
+            }
 
             mostrarToast(
                 obtenerMensajeError(error),
@@ -2438,9 +2985,19 @@
             "todos"
         );
 
-        renderizarSolicitudes(
-            solicitudesRegistradas
+        asignarValor(
+            "fechaInicio",
+            ""
         );
+
+        asignarValor(
+            "fechaFin",
+            ""
+        );
+
+        paginaActualServidor = 0;
+
+        cargarSolicitudes();
     }
 
     /* =========================================================
@@ -2683,6 +3240,71 @@
         );
     }
 
+    function actualizarPaginacionSolicitudes() {
+
+        const paginaVisible =
+            paginaActualServidor + 1;
+
+        asignarTexto(
+            "paginaActual",
+            totalPaginasServidor > 0
+                ? paginaVisible
+                : 1
+        );
+
+        asignarTexto(
+            "textoPaginacion",
+            totalPaginasServidor > 0
+                ? `Página ${paginaVisible} de ${totalPaginasServidor} - ${totalElementosServidor} registros`
+                : "Sin registros"
+        );
+
+        document
+            .getElementById(
+                "itemPaginaAnterior"
+            )
+            ?.classList
+            .toggle(
+                "disabled",
+                paginaActualServidor <= 0
+            );
+
+        document
+            .getElementById(
+                "itemPaginaSiguiente"
+            )
+            ?.classList
+            .toggle(
+                "disabled",
+                totalPaginasServidor === 0 ||
+                paginaActualServidor >=
+                totalPaginasServidor - 1
+            );
+    }
+
+
+    async function cambiarPagina(
+        cambio
+    ) {
+
+        const nuevaPagina =
+            paginaActualServidor +
+            Number(cambio);
+
+        if (
+            nuevaPagina < 0 ||
+            nuevaPagina >=
+            totalPaginasServidor
+        ) {
+            return;
+        }
+
+        paginaActualServidor =
+            nuevaPagina;
+
+        await cargarSolicitudes();
+    }
+
     function escaparHtml(valor) {
 
         return String(valor ?? "")
@@ -2785,5 +3407,31 @@
 
     window.cargarSolicitudes =
         cargarSolicitudes;
+    window.cambiarPagina =
+        cambiarPagina;
+
+    window.addEventListener(
+        "beforeunload",
+        function () {
+
+            if (suscripcionWebSocketSolicitudes) {
+
+                suscripcionWebSocketSolicitudes
+                    .unsubscribe();
+
+                suscripcionWebSocketSolicitudes =
+                    null;
+            }
+
+            if (
+                clienteWebSocketSolicitudes &&
+                clienteWebSocketSolicitudes.active
+            ) {
+
+                clienteWebSocketSolicitudes
+                    .deactivate();
+            }
+        }
+    );
 
 })();

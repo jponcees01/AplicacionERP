@@ -19,7 +19,7 @@
 
     const ENDPOINTS = {
         inventario:
-            `${CONFIG.API_URL}/inventario?idAlmacen=${CONFIG.getData().idAlmacen}&page=0&size=1000`,
+            `${CONFIG.API_URL}/inventario`,
 
         productos:
             `${CONFIG.API_URL}/inventario/combo?tipo=PRODUCTO`,
@@ -46,6 +46,14 @@
     let unidadesCombo = [];
     let variantesCombo = [];
     let detalleReabastecimiento = [];
+
+    let paginaActual = 0;
+    let totalPaginas = 0;
+    let totalElementos = 0;
+
+    const tamanioPagina = 10;
+
+    let temporizadorBusqueda = null;
 
     /* =========================================================
        INICIALIZACIÓN
@@ -79,7 +87,23 @@
             .getElementById("buscarProducto")
             ?.addEventListener(
                 "input",
-                filtrarProductos
+                function () {
+
+                    clearTimeout(
+                        temporizadorBusqueda
+                    );
+
+                    temporizadorBusqueda =
+                        setTimeout(
+                            function () {
+
+                                paginaActual = 0;
+
+                                cargarInventario();
+                            },
+                            400
+                        );
+                }
             );
 
         document
@@ -220,30 +244,134 @@
     ========================================================= */
 
     async function cargarInventario() {
+
         mostrarCargandoInventario();
 
-        const respuesta =
-            await realizarPeticion(
-                ENDPOINTS.inventario
-            );
+        const buscar =
+            document
+                .getElementById("buscarProducto")
+                ?.value
+                ?.trim() || "";
 
-        const lista =
-            obtenerListaRespuesta(
+        const parametros =
+            new URLSearchParams();
+
+        parametros.set(
+            "idAlmacen",
+            String(obtenerIdAlmacen())
+        );
+
+        if (buscar) {
+
+            parametros.set(
+                "buscar",
+                buscar
+            );
+        }
+
+        parametros.set(
+            "page",
+            String(paginaActual)
+        );
+
+        parametros.set(
+            "size",
+            String(tamanioPagina)
+        );
+
+        const url =
+            `${ENDPOINTS.inventario}?${parametros.toString()}`;
+
+        console.log(
+            "URL INVENTARIO:",
+            url
+        );
+
+        try {
+
+            const respuesta =
+                await realizarPeticion(url);
+
+            console.log(
+                "RESPUESTA INVENTARIO:",
                 respuesta
             );
 
-        productosInventario =
-            lista.map(
-                normalizarProductoInventario
+            productosInventario =
+                obtenerListaRespuesta(
+                    respuesta
+                ).map(
+                    normalizarProductoInventario
+                );
+
+            paginaActual =
+                Number(
+                    respuesta?.number ?? 0
+                );
+
+            totalPaginas =
+                Number(
+                    respuesta?.totalPages ?? 0
+                );
+
+            totalElementos =
+                Number(
+                    respuesta?.totalElements ?? 0
+                );
+
+            const filtroStock =
+                document
+                    .getElementById("filtroStock")
+                    ?.value || "todos";
+
+            let listaMostrar =
+                productosInventario;
+
+            if (filtroStock !== "todos") {
+
+                listaMostrar =
+                    productosInventario.filter(
+                        function (producto) {
+
+                            return (
+                                obtenerEstadoStock(producto).estado ===
+                                filtroStock
+                            );
+                        }
+                    );
+            }
+
+            renderizarProductos(
+                listaMostrar
             );
 
-        renderizarProductos(
-            productosInventario
-        );
+            actualizarPaginacionInventario();
 
-        actualizarResumen();
+            await actualizarResumen();
+
+        } catch (error) {
+
+            console.error(
+                "Error cargando inventario:",
+                error
+            );
+
+            productosInventario = [];
+
+            paginaActual = 0;
+            totalPaginas = 0;
+            totalElementos = 0;
+
+            renderizarProductos([]);
+
+            actualizarPaginacionInventario();
+
+            mostrarToast(
+                obtenerMensajeError(error),
+                "danger"
+            );
+        }
     }
-
     function obtenerListaRespuesta(respuesta) {
         if (Array.isArray(respuesta)) {
             return respuesta;
@@ -772,33 +900,33 @@
     ========================================================= */
 
     async function actualizarResumen() {
-        try{
+        try {
             const url = `${CONFIG.API_URL}/inventario/dashboard?idAlmacen=${CONFIG.getData().idAlmacen}`;
 
             const response = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-                "Authorization": `Bearer ${CONFIG.getData().accessToken}`
+                method: "GET",
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${CONFIG.getData().accessToken}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Error resumen:", data);
+                return;
             }
-        });
 
-        const data = await response.json();
+            console.log("RESUMEN BACKEND:", data);
 
-        if (!response.ok) {
-            console.error("Error resumen:", data);
-            return;
-        }
+            document.getElementById("totalProductos").textContent = data.totalProductos;
 
-        console.log("RESUMEN BACKEND:", data);
+            document.getElementById("productosStockBajo").textContent = data.productosStockBajo;
 
-        document.getElementById("totalProductos").textContent = data.totalProductos;
+            document.getElementById("productosSinStock").textContent = data.productosAgotados;
 
-        document.getElementById("productosStockBajo").textContent = data.productosStockBajo;
-
-        document.getElementById("productosSinStock").textContent = data.productosAgotados;
-
-        }catch(error){
+        } catch (error) {
 
         }
     }
@@ -1988,6 +2116,69 @@
             );
     }
 
+    function actualizarPaginacionInventario() {
+
+        const paginaVisible =
+            paginaActual + 1;
+
+        asignarTexto(
+            "paginaActual",
+            totalPaginas > 0
+                ? paginaVisible
+                : 1
+        );
+
+        asignarTexto(
+            "textoPaginacion",
+            totalPaginas > 0
+                ? `Página ${paginaVisible} de ${totalPaginas} - ${totalElementos} registros`
+                : "Sin registros"
+        );
+
+        document
+            .getElementById(
+                "itemPaginaAnterior"
+            )
+            ?.classList
+            .toggle(
+                "disabled",
+                paginaActual <= 0
+            );
+
+        document
+            .getElementById(
+                "itemPaginaSiguiente"
+            )
+            ?.classList
+            .toggle(
+                "disabled",
+                totalPaginas === 0 ||
+                paginaActual >= totalPaginas - 1
+            );
+    }
+
+
+    async function cambiarPaginaInventario(
+        cambio
+    ) {
+
+        const nuevaPagina =
+            paginaActual +
+            Number(cambio);
+
+        if (
+            nuevaPagina < 0 ||
+            nuevaPagina >= totalPaginas
+        ) {
+            return;
+        }
+
+        paginaActual =
+            nuevaPagina;
+
+        await cargarInventario();
+    }
+
     /* =========================================================
        FUNCIONES EXPUESTAS AL HTML
     ========================================================= */
@@ -2015,5 +2206,8 @@
 
     window.mostrarImagenPredeterminada =
         mostrarImagenPredeterminada;
+
+    window.cambiarPaginaInventario =
+        cambiarPaginaInventario;
 
 })();

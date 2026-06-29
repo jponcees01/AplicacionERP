@@ -9,8 +9,23 @@ const ENDPOINTS = {
     almacenes: `${API_URL}/almacenes`,
     inventario: `${API_URL}/inventario`,
 
-    pdf(idVenta) {
-        return `${API_URL}/ventas/${idVenta}/pdf`;
+    pdf(rutaPdf) {
+
+        const rutaLimpia =
+            String(rutaPdf ?? "")
+                .trim()
+                .replaceAll("\\", "/")
+                .replace(/^\/+/, "");
+
+        const rutaCodificada =
+            rutaLimpia
+                .split("/")
+                .map(function (segmento) {
+                    return encodeURIComponent(segmento);
+                })
+                .join("/");
+
+        return `${API_URL}/documentos/${rutaCodificada}`;
     }
 };
 
@@ -32,6 +47,8 @@ let temporizadorBusqueda = null;
 let cargandoVentas = false;
 let registrandoVenta = false;
 
+let clienteWebSocketVentas = null;
+let suscripcionWebSocketVentas = null;
 
 /* ============================================================
    ELEMENTOS DEL HTML
@@ -89,9 +106,282 @@ document.addEventListener(
         await cargarAlmacenes();
 
         await cargarVentas();
+
+        conectarWebSocketVentas();
     }
 );
 
+/* ============================================================
+   WEBSOCKET DE VENTAS
+============================================================ */
+
+function conectarWebSocketVentas() {
+
+    const idAlmacen =
+        obtenerIdAlmacenSesion();
+
+    if (
+        !Number.isFinite(idAlmacen) ||
+        idAlmacen <= 0
+    ) {
+
+        console.warn(
+            "No se inició el WebSocket de ventas: almacén inválido."
+        );
+
+        return;
+    }
+
+    if (
+        typeof SockJS === "undefined" ||
+        typeof StompJs === "undefined"
+    ) {
+
+        console.error(
+            "SockJS o StompJs no están cargados."
+        );
+
+        return;
+    }
+
+    if (
+        clienteWebSocketVentas &&
+        clienteWebSocketVentas.active
+    ) {
+        return;
+    }
+
+    clienteWebSocketVentas =
+        new StompJs.Client({
+
+            webSocketFactory:
+                function () {
+
+                    return new SockJS(
+                        CONFIG.WS_URL
+                    );
+                },
+
+            reconnectDelay:
+                5000,
+
+            heartbeatIncoming:
+                10000,
+
+            heartbeatOutgoing:
+                10000,
+
+            debug:
+                function (mensaje) {
+
+                    console.log(
+                        "[STOMP VENTAS]",
+                        mensaje
+                    );
+                }
+        });
+
+    clienteWebSocketVentas.onConnect =
+        function () {
+
+            console.log(
+                "WebSocket de ventas conectado correctamente."
+            );
+
+            suscribirseCanalVentas(
+                idAlmacen
+            );
+        };
+
+    clienteWebSocketVentas.onStompError =
+        function (frame) {
+
+            console.error(
+                "Error STOMP ventas:",
+                frame.headers?.message
+            );
+
+            console.error(
+                frame.body
+            );
+        };
+
+    clienteWebSocketVentas.onWebSocketError =
+        function (error) {
+
+            console.error(
+                "Error WebSocket ventas:",
+                error
+            );
+        };
+
+    clienteWebSocketVentas.onWebSocketClose =
+        function () {
+
+            console.warn(
+                "WebSocket de ventas desconectado."
+            );
+        };
+
+    clienteWebSocketVentas.activate();
+}
+
+function suscribirseCanalVentas(
+    idAlmacen
+) {
+
+    if (
+        !clienteWebSocketVentas ||
+        !clienteWebSocketVentas.connected
+    ) {
+        return;
+    }
+
+    if (suscripcionWebSocketVentas) {
+
+        suscripcionWebSocketVentas
+            .unsubscribe();
+
+        suscripcionWebSocketVentas =
+            null;
+    }
+
+    const canal =
+        `/topic/ventas/almacen/${idAlmacen}`;
+
+    suscripcionWebSocketVentas =
+        clienteWebSocketVentas.subscribe(
+            canal,
+            procesarEventoWebSocketVenta
+        );
+
+    console.log(
+        "Suscrito al canal:",
+        canal
+    );
+}
+
+async function procesarEventoWebSocketVenta(
+    mensaje
+) {
+
+    try {
+
+        const evento =
+            JSON.parse(
+                mensaje.body
+            );
+
+        console.log(
+            "Evento WebSocket de venta recibido:",
+            evento
+        );
+
+        /*
+         * Esperar a que finalice la transacción del backend.
+         */
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    500
+                )
+        );
+
+        paginaActual = 0;
+
+        await cargarVentas();
+
+        const idAlmacen =
+            obtenerIdAlmacenSesion();
+
+        /*
+         * Actualizar el stock del combo de productos.
+         */
+        if (idAlmacen) {
+
+            await cargarProductosDisponibles(
+                idAlmacen
+            );
+        }
+
+        mostrarMensajeWebSocketVenta(
+            evento
+        );
+
+        if (
+            typeof actualizarAlertasGlobales ===
+            "function"
+        ) {
+            actualizarAlertasGlobales();
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error procesando evento WebSocket de venta:",
+            error
+        );
+    }
+}
+
+
+function mostrarMensajeWebSocketVenta(
+    evento
+) {
+
+    const accion =
+        String(
+            evento?.accion || ""
+        )
+            .trim()
+            .toUpperCase();
+
+    let mensaje =
+        evento?.mensaje ||
+        "Se actualizó una venta.";
+
+    let tipo =
+        "info";
+
+    switch (accion) {
+
+        case "VENTA_CREADA":
+
+            mensaje =
+                "Se registró una nueva venta.";
+
+            tipo =
+                "success";
+
+            break;
+
+        case "VENTA_REGISTRADA":
+
+            mensaje =
+                "Se registró una nueva venta.";
+
+            tipo =
+                "success";
+
+            break;
+
+        case "VENTA_ANULADA":
+
+            mensaje =
+                "La venta fue anulada.";
+
+            tipo =
+                "danger";
+
+            break;
+    }
+
+    mostrarToast(
+        mensaje,
+        tipo
+    );
+}
 
 /* ============================================================
    EVENTOS
@@ -1656,9 +1946,22 @@ async function cargarVentas() {
             await response.json();
 
         ventas =
-            Array.isArray(respuesta)
-                ? respuesta
-                : respuesta.content || [];
+            (
+                Array.isArray(respuesta)
+                    ? respuesta
+                    : respuesta.content || []
+            ).map(function (venta) {
+
+                return {
+                    ...venta,
+
+                    rutaPdf:
+                        venta.rutaPdf ??
+                        venta.rutapdf ??
+                        venta.ruta_pdf ??
+                        null
+                };
+            });
 
         paginaActual =
             respuesta.number ??
@@ -1759,6 +2062,7 @@ function renderizarVentas() {
         );
 
     if (
+        !Array.isArray(ventas) ||
         ventas.length === 0
     ) {
 
@@ -1813,6 +2117,35 @@ function renderizarVentas() {
                 venta.estado ??
                 "SIN ESTADO";
 
+            const rutaPdf =
+                venta.rutaPdf ??
+                venta.rutapdf ??
+                venta.ruta_pdf ??
+                null;
+
+            const botonPdf =
+                rutaPdf
+                    ? `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            title="Ver comprobante PDF"
+                            onclick="verPdfVenta(${idVenta})"
+                        >
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </button>
+                    `
+                    : `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            title="PDF no disponible"
+                            disabled
+                        >
+                            <i class="bi bi-file-earmark-x"></i>
+                        </button>
+                    `;
+
             const fila =
                 document.createElement(
                     "tr"
@@ -1824,15 +2157,11 @@ function renderizarVentas() {
                 </td>
 
                 <td>
-
                     <span class="numero-venta">
-
                         ${escaparHtml(
-                numeroComprobante
-            )}
-
+                            numeroComprobante
+                        )}
                     </span>
-
                 </td>
 
                 <td>
@@ -1852,18 +2181,7 @@ function renderizarVentas() {
                 </td>
 
                 <td class="text-center">
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-danger"
-                        title="Ver PDF"
-                        onclick="verPdfVenta(${idVenta})"
-                    >
-
-                        <i class="bi bi-file-earmark-pdf"></i>
-
-                    </button>
-
+                    ${botonPdf}
                 </td>
             `;
 
@@ -1904,34 +2222,82 @@ async function verPdfVenta(
     idVenta
 ) {
 
-    if (!idVenta) {
-
-        mostrarToast(
-            "El identificador de la venta no es válido",
-            "warning"
-        );
-
-        return;
-    }
-
-    const ventanaPdf =
-        window.open(
-            "",
-            "_blank"
-        );
-
-    mostrarCarga(
-        "Cargando comprobante..."
-    );
+    let urlTemporalPdf = null;
 
     try {
 
+        const venta =
+            ventas.find(
+                function (item) {
+
+                    return Number(
+                        item.idVenta ??
+                        item.id
+                    ) === Number(idVenta);
+                }
+            );
+
+        if (!venta) {
+
+            throw new Error(
+                "No se encontró la venta seleccionada"
+            );
+        }
+
+        const rutaPdf =
+            venta.rutaPdf ??
+            venta.rutapdf ??
+            venta.ruta_pdf ??
+            null;
+
+        if (
+            !rutaPdf ||
+            String(rutaPdf).trim() === ""
+        ) {
+
+            throw new Error(
+                "Esta venta no tiene un comprobante PDF disponible"
+            );
+        }
+
+        const token =
+            obtenerToken();
+
+        if (!token) {
+
+            throw new Error(
+                "No se encontró el token de acceso"
+            );
+        }
+
+        const url =
+            ENDPOINTS.pdf(
+                rutaPdf
+            );
+
+        console.log(
+            "Ruta PDF:",
+            rutaPdf
+        );
+
+        console.log(
+            "URL PDF:",
+            url
+        );
+
         const response =
             await fetch(
-                ENDPOINTS.pdf(idVenta),
+                url,
                 {
                     method: "GET",
-                    headers: obtenerHeaders()
+
+                    headers: {
+                        Accept: "application/pdf",
+                        Authorization:
+                            `Bearer ${token}`
+                    },
+
+                    cache: "no-store"
                 }
             );
 
@@ -1948,54 +2314,88 @@ async function verPdfVenta(
         const blob =
             await response.blob();
 
-        if (
-            blob.size === 0
-        ) {
+        if (blob.size === 0) {
+
             throw new Error(
                 "El archivo PDF está vacío"
             );
         }
 
-        const url =
-            URL.createObjectURL(blob);
+        urlTemporalPdf =
+            URL.createObjectURL(
+                blob
+            );
 
-        if (ventanaPdf) {
+        const iframe =
+            document.getElementById(
+                "iframeVentaPdf"
+            );
 
-            ventanaPdf.location.href =
-                url;
+        const elementoModal =
+            document.getElementById(
+                "modalPreviewPdfVenta"
+            );
 
-        } else {
+        if (!iframe || !elementoModal) {
 
-            window.open(
-                url,
-                "_blank"
+            throw new Error(
+                "No se encontró el visor del PDF"
             );
         }
 
-        setTimeout(
-            function () {
-                URL.revokeObjectURL(url);
-            },
-            60000
+        iframe.src =
+            urlTemporalPdf;
+
+        const modal =
+            bootstrap.Modal
+                .getOrCreateInstance(
+                    elementoModal
+                );
+
+        modal.show();
+
+        elementoModal.addEventListener(
+            "hidden.bs.modal",
+            function limpiarPdf() {
+
+                iframe.src =
+                    "about:blank";
+
+                if (urlTemporalPdf) {
+
+                    URL.revokeObjectURL(
+                        urlTemporalPdf
+                    );
+
+                    urlTemporalPdf =
+                        null;
+                }
+
+                elementoModal.removeEventListener(
+                    "hidden.bs.modal",
+                    limpiarPdf
+                );
+            }
         );
 
     } catch (error) {
 
-        ventanaPdf?.close();
-
         console.error(
-            "Error abriendo PDF:",
+            "Error visualizando PDF:",
             error
         );
+
+        if (urlTemporalPdf) {
+
+            URL.revokeObjectURL(
+                urlTemporalPdf
+            );
+        }
 
         mostrarToast(
             error.message,
             "danger"
         );
-
-    } finally {
-
-        ocultarCarga();
     }
 }
 
@@ -2027,7 +2427,7 @@ async function actualizarResumen() {
         console.log("RESUMEN VENTAS:", data);
 
         document.getElementById("totalVentas").textContent = data.totalVentas;
-        
+
         document.getElementById("totalCompletadas").textContent = data.ventasCompletadas;
 
         document.getElementById("importeTotalVentas").textContent = formatearMoneda(data.importeRegistrado);
@@ -2634,3 +3034,27 @@ function escaparHtml(
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
 }
+
+window.addEventListener(
+    "beforeunload",
+    function () {
+
+        if (suscripcionWebSocketVentas) {
+
+            suscripcionWebSocketVentas
+                .unsubscribe();
+
+            suscripcionWebSocketVentas =
+                null;
+        }
+
+        if (
+            clienteWebSocketVentas &&
+            clienteWebSocketVentas.active
+        ) {
+
+            clienteWebSocketVentas
+                .deactivate();
+        }
+    }
+);
